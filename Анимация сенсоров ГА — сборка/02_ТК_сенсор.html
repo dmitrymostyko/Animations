@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Термокаталитический сенсор — анимация принципа работы</title>
+<link rel="stylesheet" href="common/style.css">
+<style>
+  #readout { width: 400px; }
+  #readout .top { display: flex; gap: 10px; align-items: flex-start; }
+  #readout .top .vals { flex: 1; }
+  #readout .small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+  #readout .small b { color: #fff; font-weight: 500; }
+  #readout .warn { color: #ffb070; font-size: 12px; min-height: 16px; }
+  #controls .row output { width: auto; white-space: nowrap; }
+  #bridge { width: 150px; height: 108px; flex: none; }
+  #bridge text { font: 10px "Segoe UI", sans-serif; fill: #9fb0c6; }
+  #bridge .wire { stroke: #6f7f95; stroke-width: 1.5; fill: none; }
+  #bridge .res { stroke-width: 7; stroke-linecap: round; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+
+<div class="title">
+  <a href="index.html">← все сенсоры</a>
+  <h1>Термокаталитический сенсор</h1>
+  <div class="sub">Контроль довзрывоопасных концентраций горючих газов · EX</div>
+</div>
+
+<div id="mols" class="panel">
+  <h3>Обозначения</h3>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 50% 50%,#2b2f36 0 42%,rgba(160,168,176,.6) 46%)"></span>CH₄ — метан (горючий газ)</div>
+  <div class="m"><span class="dot" style="background:rgba(79,180,255,.5);border:1px solid rgba(79,180,255,.75)"></span>O₂ — кислород</div>
+  <div class="m"><span class="dot" style="background:rgba(207,216,230,.08);border:1px solid rgba(207,216,230,.18);box-shadow:none"></span>прочие молекулы воздуха</div>
+  <div class="m"><span class="dot" style="background:rgba(79,180,255,.5);border:1px solid rgba(79,180,255,.75);width:8px;height:8px;margin:0 3px"></span>атомы O на катализаторе</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 50% 50%,#2b2f36 0 35%,rgba(79,180,255,.65) 36%)"></span>CO₂ — продукт реакции</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 50% 50%,rgba(79,180,255,.75) 0 52%,rgba(160,168,176,.55) 54%)"></span>H₂O — продукт реакции</div>
+  <div class="m"><span class="dot" style="background:#a77ad0"></span>пары силикона (яд)</div>
+  <div class="m"><span class="dot" style="background:#e8eef5"></span>отложения SiO₂</div>
+</div>
+
+<div id="info" class="panel">
+  <h3>Принцип работы</h3>
+  <p>Горючий газ беспламенно окисляется на поверхности нагретого катализатора. Тепло реакции нагревает чувствительный элемент, и меняется его электрическое сопротивление.</p>
+  <ol>
+    <li>Газ попадает к чувствительным элементам путём <b>диффузии</b> через пористый металлокерамический диск.</li>
+    <li><b>Пеллистор</b> («pellet» + «resistor») — платиновая спираль в пористом керамическом шарике (оксид алюминия) диаметром менее 1 мм. Ток через спираль нагревает её примерно до <b>500–550 °C</b>.</li>
+    <li><b>Активный пеллистор</b> покрыт катализатором. Кислород адсорбируется на нём и распадается на атомы O. Молекула CH₄, попавшая на поверхность, окисляется: выделяется тепло, CO₂ и H₂O уходят в газ.</li>
+    <li>Тепло реакции повышает температуру активного пеллистора, и <b>сопротивление платиновой спирали растёт</b>.</li>
+    <li><b>Пассивный (компенсационный) пеллистор</b> устроен так же, но без катализатора (или с подавленной активностью). Газ на нём не горит, а на температуру, влажность и обдув он реагирует так же, как активный. Эти помехи компенсируются.</li>
+    <li>Оба пеллистора включены в <b>мост Уитстона</b>. Разбаланс моста ΔU пропорционален концентрации, практически линейно до 100 %НКПР. У типовых датчиков это ≈11–17 мВ на 1 % об.д. метана.</li>
+  </ol>
+  <div class="reaction">O₂ → 2O (на катализаторе)<br>CH₄ + 2O₂ → CO₂ + 2H₂O + тепло</div>
+  <p><b>Ограничения</b></p>
+  <ul style="padding-left:18px;margin:4px 0 8px">
+    <li><b>Нужен кислород</b>, обычно не менее 10–12 % об.д. При его недостатке показания <b>занижаются</b>.</li>
+    <li><b>Выше НКПР показания неоднозначны.</b> В богатой смеси не хватает кислорода, и сигнал падает. При опасной концентрации прибор может показать малое значение или ноль.</li>
+    <li><b>Отравление</b>: силиконы, сернистые соединения (H₂S, SO₂), соединения свинца, галогенированные углеводороды. Отравленный сенсор в чистом воздухе показывает 0 и о неисправности не сообщает. Поэтому нужна регулярная проверка поверочной газовой смесью.</li>
+    <li>Сенсор <b>неизбирателен</b>: сигнал дают все горючие газы, но с разной чувствительностью.</li>
+  </ul>
+  <p class="note">Условности анимации: пеллисторы сильно увеличены, доли газов и скорость реакции изменены для наглядности. Зависимость показаний от кислорода и концентрации — качественная модель по данным производителей.</p>
+</div>
+
+<div id="controls" class="panel">
+  <h3>Управление</h3>
+  <div class="row"><label for="conc">CH₄ в окружающей среде</label><output for="conc"></output></div>
+  <input type="range" id="conc" min="0" max="200" step="1" value="50">
+  <div class="note" style="color:var(--muted);font-size:11px;margin-top:-2px">правая половина шкалы — выше НКПР, до 80 % об.д.</div>
+  <div class="row"><label for="o2">O₂ в воздухе</label><output for="o2"></output></div>
+  <input type="range" id="o2" min="0" max="20.9" step="0.1" value="20.9">
+  <div class="row"><label for="speed">Скорость анимации</label><output for="speed"></output></div>
+  <input type="range" id="speed" min="0.1" max="1.5" step="0.05" value="0.8">
+  <div class="btns sys">
+    <button id="bPause">⏸ Пауза</button>
+    <button class="toggle" id="tLabels">Подписи</button>
+    <button class="toggle" id="tAir">Молекулы воздуха</button>
+  </div>
+  <div class="btns">
+    <button class="toggle" id="tPoison">Пары силикона</button>
+    <button id="bNew">Новый сенсор</button>
+  </div>
+  <div class="btns">
+    <button data-view="0">Общий вид</button>
+    <button data-view="1">Сбоку</button>
+    <button data-view="2">Пеллисторы</button>
+  </div>
+</div>
+
+<div id="readout" class="panel">
+  <h3>Показание газоанализатора</h3>
+  <div class="top">
+    <div class="vals">
+      <div class="big"><span id="rd">0</span> <small>%НКПР</small></div>
+      <div class="warn" id="warn"></div>
+      <div class="small">Разбаланс моста ΔU: <b id="du">0</b> мВ<br>
+        Фактически в камере: <b id="act">0</b> %НКПР (<span id="vol">0</span> % об.д.)<br>
+        O₂ в камере: <b id="o2in">20,9</b> % об.д.<br>
+        Активность катализатора: <b id="actv">100</b> %</div>
+    </div>
+    <svg id="bridge" viewBox="0 0 160 112">
+      <path class="wire" d="M80 10 L20 56 L80 102 L140 56 Z"/>
+      <line class="res" id="r1" x1="60" y1="25.3" x2="40" y2="40.7" stroke="#c8ccd2"/>
+      <line class="res" id="r2" x1="100" y1="25.3" x2="120" y2="40.7" stroke="#ff7a3d"/>
+      <line class="res" x1="40" y1="71.3" x2="60" y2="86.7" stroke="#55606e"/>
+      <line class="res" x1="120" y1="71.3" x2="100" y2="86.7" stroke="#55606e"/>
+      <path class="wire" d="M20 56 L66 56 M94 56 L140 56"/>
+      <circle cx="80" cy="56" r="13" fill="#141b26" stroke="#9fb0c6" stroke-width="1.5"/>
+      <line id="needle" x1="80" y1="62" x2="80" y2="47" stroke="#4fd18b" stroke-width="2"/>
+      <text x="76" y="76">ΔU</text>
+      <text x="22" y="24">R1 пасс.</text>
+      <text x="108" y="24">R2 акт.</text>
+      <text x="26" y="96">R3</text>
+      <text x="124" y="96">R4</text>
+      <text x="84" y="9">+</text>
+      <text x="84" y="111">−</text>
+    </svg>
+  </div>
+  <div class="charts">
+    <div class="chb">
+      <div class="chart-t">Разбаланс моста ΔU, мВ</div>
+      <canvas class="ch" id="chartS"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#ff8a3d"></i>ΔU</span></span></div>
+    </div>
+    <div class="chb">
+      <div class="chart-t">Концентрация, %НКПР</div>
+      <canvas class="ch" id="chartC"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#8a96a8"></i>фактически</span><span><i style="background:#4fd18b"></i>показание</span></span></div>
+    </div>
+  </div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+<script src="assets/logo.js"></script>
+<script src="common/core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const V3 = THREE.Vector3;
+
+  /* ===================== Сцена ===================== */
+  const stage = GA.createStage({ cameraPos: new V3(-5.6, 3.0, 6.6), target: new V3(-0.7, 0, 0), floorY: -2.4 });
+  const scene = stage.scene;
+  GA.labels = new GA.Labels();
+  GA.addLogo(stage, { maxPx: 760, top: 14, depth: 0.02, layers: 48, spinEvery: 20, spinTime: 2.5 });
+
+  // Камера сенсора — цилиндр вдоль оси X, газ входит спереди (x = X0)
+  const R = 1.2, X0 = -1.6, X1 = 1.6, RIN = R - 0.15;
+  const RB = 0.3;                                   // радиус шарика пеллистора (в анимации сильно увеличен)
+  const P_ACT = new V3(0.15, 0.48, 0);              // активный пеллистор
+  const P_PAS = new V3(0.15, -0.48, 0);             // пассивный пеллистор
+
+  /* ---------- Корпус: ближняя половина прозрачна, дальняя — металл ---------- */
+  const innerMetal = new THREE.MeshStandardMaterial({ color: 0x4f5864, metalness: 0.7, roughness: 0.45 });
+  const shellGeo = new THREE.CylinderGeometry(R, R, X1 - X0, 72, 1, true);
+  const shellInner = new THREE.Mesh(shellGeo, Object.assign(innerMetal.clone(), { side: THREE.BackSide }));
+  shellInner.rotation.z = Math.PI / 2;
+  scene.add(shellInner);
+  const glass = GA.mat.glassShell(); glass.side = THREE.FrontSide;
+  const shell = new THREE.Mesh(shellGeo, glass);
+  shell.rotation.z = Math.PI / 2; shell.renderOrder = 10;
+  scene.add(shell);
+
+  const metal = GA.mat.metal();
+  const ringGeo = new THREE.TorusGeometry(R, 0.05, 12, 96);
+  {
+    const ring = new THREE.Mesh(ringGeo, metal);
+    ring.rotation.y = Math.PI / 2; ring.position.x = X1;
+    scene.add(ring);
+    const bezel = new THREE.Mesh(new THREE.TorusGeometry(R + 0.02, 0.09, 16, 96), metal);
+    bezel.rotation.y = Math.PI / 2; bezel.position.x = X0;
+    scene.add(bezel);
+    const pts = [];
+    for (let k = 0; k < 12; k++) {
+      const a = k / 12 * Math.PI * 2;
+      pts.push(X0, Math.cos(a) * R, Math.sin(a) * R, X1, Math.cos(a) * R, Math.sin(a) * R);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x9fb4cc, transparent: true, opacity: 0.18 })));
+  }
+  // основание (цоколь) с выводами: изнутри непрозрачно, снаружи прозрачно
+  const capGeo = new THREE.CircleGeometry(R, 72);
+  const capIn = new THREE.Mesh(capGeo, innerMetal);
+  capIn.position.x = X1; capIn.rotation.y = -Math.PI / 2;
+  scene.add(capIn);
+  const capOut = new THREE.Mesh(capGeo, new THREE.MeshStandardMaterial({
+    color: 0x9aa6b4, metalness: 0.85, roughness: 0.35, transparent: true, opacity: 0.25, depthWrite: false
+  }));
+  capOut.position.x = X1 + 0.002; capOut.rotation.y = Math.PI / 2; capOut.renderOrder = 10;
+  scene.add(capOut);
+  // входной пористый металлокерамический диск
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(R, 72), new THREE.MeshStandardMaterial({
+    color: 0xc9cfd7, metalness: 0.8, roughness: 0.5,
+    alphaMap: GA.meshTexture(40), transparent: true, side: THREE.DoubleSide, depthWrite: false
+  }));
+  disc.position.x = X0; disc.rotation.y = -Math.PI / 2; disc.renderOrder = 11;
+  scene.add(disc);
+
+  /* ---------- Пеллисторы ---------- */
+  function grainTexture(base, dark, n) {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d');
+    g.fillStyle = base; g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < n; i++) {
+      g.fillStyle = dark;
+      g.globalAlpha = 0.25 + Math.random() * 0.6;
+      g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 0.6 + Math.random() * 2.2, 0, 7); g.fill();
+    }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
+  function makePellistor(pos, active) {
+    const grp = new THREE.Group();
+    grp.position.copy(pos);
+    scene.add(grp);
+    // платиновая спираль (ось — вдоль Z, между выводами)
+    const pts = [];
+    const turns = 6, len = 0.34, rc = 0.11;
+    for (let i = 0; i <= 240; i++) {
+      const k = i / 240, a = k * turns * Math.PI * 2;
+      pts.push(new V3(Math.cos(a) * rc, Math.sin(a) * rc, -len / 2 + k * len));
+    }
+    const coilMat = new THREE.MeshStandardMaterial({
+      color: 0xd8dde3, metalness: 1, roughness: 0.25, emissive: 0xff3a10, emissiveIntensity: 0.9
+    });
+    grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 240, 0.016, 8), coilMat));
+    // пористый керамический шарик; активный — с тёмным катализатором
+    const bead = new THREE.Mesh(new THREE.SphereGeometry(RB, 48, 32), new THREE.MeshStandardMaterial({
+      map: active ? grainTexture('#7a7068', '#1d1a18', 2600) : grainTexture('#ece6da', '#b9b1a3', 900),
+      roughness: 0.95, metalness: 0, transparent: true, opacity: active ? 0.62 : 0.5, depthWrite: false
+    }));
+    bead.renderOrder = 5;
+    grp.add(bead);
+    // выводы спирали и стойки до цоколя
+    const wireMat = GA.mat.metal(0xc9ced6);
+    const postMat = GA.mat.gold();
+    for (const sz of [-1, 1]) {
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.42, 8), wireMat);
+      w.rotation.x = Math.PI / 2; w.position.z = sz * 0.38;
+      grp.add(w);
+      const postLen = X1 - pos.x;
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, postLen, 12), postMat);
+      p.rotation.z = Math.PI / 2;
+      p.position.set(postLen / 2, 0, sz * 0.59);
+      grp.add(p);
+    }
+    // тепловое свечение
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: GA.glowTexture(), color: 0xff4010, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.35
+    }));
+    glow.scale.setScalar(1.1);
+    glow.renderOrder = 6;
+    grp.add(glow);
+    return { grp, bead, coilMat, glow, pos: pos.clone(), active, heat: 0, sites: [], spots: [] };
+  }
+  const act = makePellistor(P_ACT, true);
+  const pas = makePellistor(P_PAS, false);
+  const beads = [act, pas];
+
+  /* ---------- Подписи ---------- */
+  GA.labels.setAvoid(new THREE.Box3(new V3(X0 - 0.12, -R - 0.12, -R - 0.12), new V3(X1 + 0.05, R + 0.12, R + 0.12)));
+  GA.labels.add('Активный пеллистор (с катализатором)', P_ACT.clone().add(new V3(0, RB, 0)), { side: 'top' });
+  GA.labels.add('Пассивный (компенсационный) пеллистор', P_PAS.clone().add(new V3(0, -RB, 0)), { side: 'bottom' });
+  GA.labels.add('Выводы к мосту Уитстона', new V3((P_PAS.x + X1) / 2, P_PAS.y, 0.59), { side: 'bottom' });
+
+  /* ===================== Газовая среда ===================== */
+  const FMAX = 0.3;          // доля CH4 среди молекул при 100 %НКПР (условно)
+  let sliderV = 50, o2Set = 20.9, poisonOn = false, showAir = true;
+  const LEL = 4.4;           // 100 %НКПР метана, % об.д.
+  const volFromSlider = v => v <= 100 ? LEL * v / 100 : LEL * Math.pow(80 / LEL, (v - 100) / 100);
+  function visFracCH4(vol) {
+    return vol <= LEL ? FMAX * vol / LEL : FMAX + (0.85 - FMAX) * (vol - LEL) / (80 - LEL);
+  }
+  function pickType() {
+    const vol = volFromSlider(sliderV);
+    const r = Math.random();
+    if (poisonOn && r < 0.1) return 'SIL';
+    const f = visFracCH4(vol);
+    if (Math.random() < f) return 'CH4';
+    return Math.random() < 0.21 * o2Set / 20.9 ? 'O2' : 'AIR';
+  }
+
+  function confine(p, v, m) {
+    const r2 = p.y * p.y + p.z * p.z;
+    if (!m.inside) {
+      if (p.x > X0) {
+        if (r2 < RIN * RIN) m.inside = true;
+        else { p.x = X0 - 0.001; v.x = -Math.abs(v.x); }
+      }
+      return true;
+    }
+    if (p.x < X0) {
+      if (r2 < RIN * RIN) m.inside = false;
+      else { p.x = X0 + 0.001; v.x = Math.abs(v.x); }
+      return true;
+    }
+    if (p.x > X1 - 0.15) { p.x = X1 - 0.15; v.x = -Math.abs(v.x); }
+    if (r2 > RIN * RIN) {
+      const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r;
+      const vn = v.y * ny + v.z * nz;
+      if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+      p.y = ny * RIN; p.z = nz * RIN;
+    }
+    return true;
+  }
+
+  const gas = new GA.GasField({
+    scene, count: 170, speed: 1.6, collide: 0.8,
+    box: { xMin: -7.2, xMax: X0, yMin: -2.2, yMax: 2.2, zMin: -2.2, zMax: 2.2 },
+    pickType, confine
+  });
+  for (let i = 0; i < 24; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (RIN - 0.05);
+    const m = gas.spawn(Math.random() < 0.21 ? 'O2' : 'AIR', true,
+      new V3(THREE.MathUtils.lerp(X0 + 0.1, X1 - 0.3, Math.random()), Math.cos(a) * r, Math.sin(a) * r));
+    m.inside = true;
+  }
+  // состав среды меняется вдали от сенсора, к сенсору приходит диффузией
+  function refreshAmbient(dt) {
+    const n = gas.list.length;
+    for (let i = 0; i < n; i++) {
+      const m = gas.list[i];
+      if (m.dead || m.inside || m.state.product) continue;
+      const w = THREE.MathUtils.clamp((X0 - 0.4 - m.obj.position.x) / 2.5, 0, 1);
+      if (Math.random() < dt * 1.2 * w) {
+        const t = pickType();
+        if (t !== m.type) {
+          const nm = gas.spawn(t, true, m.obj.position);
+          nm.vel.copy(m.vel);
+          gas.remove(m);
+        }
+      }
+    }
+  }
+
+  /* ===================== Вспышки ===================== */
+  const flashes = [];
+  for (let i = 0; i < 50; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GA.glowTexture(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    s.visible = false; s.renderOrder = 21;
+    scene.add(s);
+    flashes.push({ s, life: 0, max: 1, size: 0.5 });
+  }
+  function flash(pos, color, size = 0.5, life = 0.5) {
+    const f = flashes.find(f => f.life <= 0) || flashes[0];
+    f.s.position.copy(pos); f.s.material.color.setHex(color);
+    f.life = f.max = life; f.size = size; f.s.visible = true;
+  }
+  function stepFlashes(dt) {
+    for (const f of flashes) {
+      if (f.life <= 0) continue;
+      f.life -= dt;
+      const k = Math.max(0, f.life / f.max);
+      f.s.material.opacity = k;
+      f.s.scale.setScalar(f.size * (1.5 - 0.7 * k));
+      if (f.life <= 0) f.s.visible = false;
+    }
+  }
+
+  /* ===================== Поверхность катализатора ===================== */
+  const MAXO = 16;                 // мест для атомов O на активном пеллисторе
+  const oGeo = new THREE.SphereGeometry(0.05 * GA.molK, 12, 8);
+  const oMat = GA.atomMat('O');                    // атомы O из распавшегося O2 — тот же материал, что у O2
+  const spotGeo = new THREE.SphereGeometry(0.1, 16, 8);
+  const spotMat = new THREE.MeshStandardMaterial({ color: 0xe8eef5, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.9 });
+  let activity = 1;                // активность катализатора (снижается при отравлении)
+
+  function addO(dir) {
+    if (act.sites.length >= MAXO) return false;
+    const m = new THREE.Mesh(oGeo, oMat);
+    m.position.copy(dir).multiplyScalar(RB + 0.02);
+    act.grp.add(m);
+    act.sites.push({ mesh: m, dir: dir.clone() });
+    return true;
+  }
+  function takeO(dir, n) {
+    act.sites.sort((a, b) => b.dir.dot(dir) - a.dir.dot(dir));
+    for (const s of act.sites.splice(0, n)) {
+      act.grp.remove(s.mesh);
+      flash(act.grp.localToWorld(s.mesh.position.clone()), 0xffd080, 0.25, 0.35);
+    }
+  }
+  for (let i = 0; i < MAXO; i++) addO(new V3().randomDirection());
+
+  function addSpot(dir) {
+    const m = new THREE.Mesh(spotGeo, spotMat);
+    m.position.copy(dir).multiplyScalar(RB);
+    m.scale.set(1, 1, 0.35);
+    m.lookAt(act.grp.position.clone().addScaledVector(dir, 2));   // плоской стороной к поверхности
+    act.grp.add(m);
+    act.spots.push(m);
+    // атомы O под отложением теряются
+    for (let i = act.sites.length - 1; i >= 0; i--) {
+      if (act.sites[i].dir.dot(dir) > 0.85) { act.grp.remove(act.sites[i].mesh); act.sites.splice(i, 1); }
+    }
+  }
+  function resetSensor() {
+    for (const m of act.spots) act.grp.remove(m);
+    act.spots.length = 0;
+    activity = 1;
+    while (act.sites.length < MAXO) addO(new V3().randomDirection());
+  }
+
+  /* ---------- Взаимодействие молекул с пеллисторами ---------- */
+  const pops = { react: -10, o2: -10, pas: -10, poison: -10 };
+  function popOnce(key, every, text, anchor) {
+    if (stage.time - pops[key] < every) return;
+    pops[key] = stage.time;
+    GA.labels.pop(text, anchor, 2.0);
+  }
+  const _d = new V3();
+  const HIT = RB + 0.09;
+  function replenish() { gas.spawn(null, false); }   // взамен израсходованной молекулы — из окружающей среды
+
+  function stepSurface(dt) {
+    for (const m of gas.list) {
+      if (m.dead || !m.inside) continue;
+      const p = m.obj.position;
+
+      // адсорбированная молекула CH4 ждёт атомы O и окисляется
+      if (m.frozen) {
+        const st = m.state;
+        st.t += dt;
+        if (act.sites.length >= 4 && st.t > 0.35) react(m);
+        else if (st.t > 2.5) { m.frozen = false; m.vel.copy(st.n).multiplyScalar(gas.speed); }
+        continue;
+      }
+      for (const b of beads) {
+        _d.subVectors(p, b.pos);
+        const d = _d.length();
+        if (d >= HIT) continue;
+        const n = _d.multiplyScalar(1 / Math.max(d, 1e-4));
+        if (b.active) {
+          if (m.type === 'CH4' && Math.random() < activity) {
+            m.frozen = true;
+            m.state = { t: 0, n: n.clone() };
+            p.copy(b.pos).addScaledVector(n, RB + 0.07);
+            break;
+          }
+          if (m.type === 'O2' && act.sites.length <= MAXO - 2 && Math.random() < 0.8 * activity) {
+            // диссоциативная адсорбция: O2 → 2O
+            const t1 = new V3(-n.y, n.x, 0.3).normalize();
+            addO(n.clone().addScaledVector(t1, 0.18).normalize());
+            addO(n.clone().addScaledVector(t1, -0.18).normalize());
+            flash(p, 0x80c8ff, 0.3, 0.4);
+            popOnce('o2', 7, 'O₂ → 2O: кислород распался на катализаторе', act.sites[act.sites.length - 1].mesh);
+            gas.remove(m); replenish();
+            break;
+          }
+          if (m.type === 'SIL') {
+            addSpot(n.clone());
+            activity = Math.max(0, activity - 0.1);
+            flash(p, 0xd0b0ff, 0.4, 0.5);
+            popOnce('poison', 4, 'силикон → SiO₂: катализатор закрыт', act.spots[act.spots.length - 1]);
+            gas.remove(m); replenish();
+            break;
+          }
+        } else if (m.type === 'CH4') {
+          popOnce('pas', 9, 'на пассивном пеллисторе газ не окисляется', m.obj);
+        }
+        // упругий отскок от шарика
+        p.copy(b.pos).addScaledVector(n, HIT);
+        const vn = m.vel.dot(n);
+        if (vn < 0) m.vel.addScaledVector(n, -2 * vn);
+        break;
+      }
+    }
+  }
+
+  // CH4 + 4O(адс) → CO2 + 2H2O + тепло
+  function react(m) {
+    const n = m.state.n;
+    const site = m.obj.position.clone();
+    takeO(n, 4);
+    flash(site, 0xffe070, 0.9, 0.6);
+    flash(site, 0xff7a20, 1.6, 0.9);
+    act.heat = Math.min(2.5, act.heat + 0.35);
+    popOnce('react', 4, 'CH₄ + 2O₂ → CO₂ + 2H₂O + тепло', act.bead);
+    gas.remove(m); replenish();
+    const prods = ['CO2', 'H2O', 'H2O'];
+    prods.forEach((t, i) => {
+      const off = new V3().randomDirection().multiplyScalar(0.12);
+      const pm = gas.spawn(t, true, site.clone().addScaledVector(n, 0.06).add(off));
+      pm.inside = true;
+      pm.state.product = true;
+      pm.vel.copy(n).multiplyScalar(1.6).add(new V3().randomDirection().multiplyScalar(0.7));
+    });
+  }
+
+  // продукты реакции, покинувшие камеру, рассеиваются в окружающей среде
+  function stepProducts() {
+    let nProd = 0;
+    for (const m of gas.list) {
+      if (m.dead || !m.state.product) continue;
+      nProd++;
+      if (!m.inside && m.obj.position.x < X0 - 1.2) gas.remove(m);
+    }
+    if (nProd > 70) {
+      const old = gas.list.find(m => !m.dead && m.state.product && !m.inside);
+      if (old) gas.remove(old);
+    }
+  }
+
+  /* ===================== Модель сигнала ===================== */
+  // Скорость окисления в режиме диффузионного ограничения ∝ концентрации CH4;
+  // ограничена кислородом (стехиометрия CH4 + 2O2) и падает при его недостатке.
+  const SENS = 15;                                     // мВ на 1 % об.д. CH4 (типовые 11–17 мВ/%)
+  const kO2 = o2 => 1 - Math.exp(-o2 / 4);
+  const CAL = kO2(20.9);                               // калибровка в воздухе
+  let ambVol = 0, inVol = 0, ambO2 = 20.9, inO2 = 20.9, reading = 0, dU = 0;
+  // самописец 1 — измеряемая величина (разбаланс моста), 2 — пересчитанная концентрация
+  const chartS = new GA.StripChart(document.getElementById('chartS'), [
+    { color: '#ff8a3d', data: [] }
+  ], { max: 80, len: 260, period: 0.05, gridLines: [{ v: 66, t: '66 мВ = 100 %НКПР' }, { v: 0 }] });
+  const chartC = new GA.StripChart(document.getElementById('chartC'), [
+    { color: '#8a96a8', data: [] },
+    { color: '#4fd18b', data: [] }
+  ], { max: 160, len: 260, period: 0.05, gridLines: [{ v: 100, t: '100 %НКПР' }, { v: 0 }] });
+  const el = id => document.getElementById(id);
+  const fmt = (v, d = 1) => v.toFixed(d).replace('.', ',');
+  let uiAcc = 0;
+
+  function stepSignal(dt, dtReal) {
+    const vol = volFromSlider(sliderV);
+    const o2 = o2Set * (1 - vol / 100);                // кислород разбавлен горючим газом
+    ambVol = GA.approach(ambVol, vol, 1 / 2, dt);
+    ambO2 = GA.approach(ambO2, o2, 1 / 2, dt);
+    inVol = GA.approach(inVol, ambVol, 1 / 4, dt);
+    inO2 = GA.approach(inO2, ambO2, 1 / 4, dt);
+    const rate = Math.min(inVol, inO2 / 2) * kO2(inO2) * activity;   // % об.д. «сгорающего» CH4
+    const r = rate / CAL / LEL * 100;
+    reading = GA.approach(reading, r, 2.5, dt);
+    dU = SENS * reading * LEL / 100;
+
+    // нагрев активного пеллистора: от средней скорости реакции + импульсы реакций
+    act.heat = GA.approach(act.heat, Math.min(2, reading / 100), 1.2, dt);
+    const h = act.heat;
+    act.coilMat.emissiveIntensity = 0.9 + 1.6 * h;
+    act.glow.material.color.setRGB(1, 0.25 + 0.35 * Math.min(1, h), 0.06 + 0.1 * Math.min(1, h));
+    act.glow.material.opacity = 0.35 + 0.35 * Math.min(1, h);
+    act.glow.scale.setScalar(1.1 + 0.6 * Math.min(1.5, h));
+
+    // неявное пополнение атомов O из воздуха (большинство соударений O2 не показано)
+    act.oAcc = (act.oAcc || 0) + dt * 5 * (inO2 / 20.9) * activity;
+    while (act.oAcc >= 1) { act.oAcc -= 1; addO(new V3().randomDirection()); }
+
+    // мост: цвет R2 и стрелка вольтметра
+    const hc = new THREE.Color().setRGB(1, 0.48 + 0.4 * Math.min(1, h), 0.24 + 0.3 * Math.min(1, h));
+    el('r2').setAttribute('stroke', '#' + hc.getHexString());
+    const ang = Math.min(1, dU / 100) * 70 * Math.PI / 180;
+    el('needle').setAttribute('x2', (80 + Math.sin(ang) * 15).toFixed(1));
+    el('needle').setAttribute('y2', (62 - Math.cos(ang) * 15).toFixed(1));
+
+    const actualLEL = inVol / LEL * 100;
+    if (!stage.paused) {
+      chartS.push([Math.min(dU, 80)], dtReal);
+      chartC.push([Math.min(actualLEL, 160), Math.min(reading, 160)], dtReal);
+    }
+    uiAcc += dtReal;
+    if (uiAcc > 0.15) {
+      uiAcc = 0;
+      el('rd').textContent = reading.toFixed(0);
+      el('du').textContent = dU.toFixed(0);
+      el('act').textContent = actualLEL.toFixed(0);
+      el('vol').textContent = fmt(inVol, inVol < 10 ? 2 : 1);
+      el('o2in').textContent = fmt(inO2);
+      el('actv').textContent = (activity * 100).toFixed(0);
+      let w = '';
+      if (actualLEL > 100 && reading < actualLEL * 0.7) w = '⚠ Выше НКПР: не хватает O₂, показание занижено и неоднозначно';
+      else if (inO2 < 12 && actualLEL > 5) w = '⚠ Недостаток кислорода — показание занижено';
+      else if (activity < 0.9 && actualLEL > 5) w = '⚠ Катализатор отравлен — показание занижено';
+      else if (activity < 0.9) w = 'Отравленный сенсор в чистом воздухе показывает 0 — неисправность не видна';
+      el('warn').textContent = w;
+    }
+  }
+
+  /* ===================== Главный цикл ===================== */
+  stage.onFrame((dt, t, dtReal) => {
+    refreshAmbient(dt);
+    gas.step(dt);
+    stepSurface(dt);
+    stepProducts();
+    for (const m of gas.list) if (!m.dead) m.obj.visible = showAir || m.type !== 'AIR';
+    pas.coilMat.emissiveIntensity = 0.9;
+    stepFlashes(dt);
+    stepSignal(dt, dtReal);
+  });
+
+  /* ===================== Интерфейс ===================== */
+  // параметры из адреса (#...&conc=150&o2=10&poison=1) — для проверок и ссылок на сценарии
+  for (const id of ['conc', 'o2', 'speed']) {
+    const mm = new RegExp('[#&]' + id + '=([0-9.]+)').exec(location.hash);
+    if (mm) el(id).value = mm[1];
+  }
+  const poisonInit = /[#&]poison=1/.test(location.hash);
+  GA.bindRange('conc', v => {
+    const vol = volFromSlider(v);
+    return v <= 100 ? v.toFixed(0) + ' %НКПР' : fmt(vol, 1) + ' % об.д. (' + (vol / LEL * 100).toFixed(0) + ' %НКПР)';
+  }, v => { sliderV = v; });
+  GA.bindRange('o2', v => fmt(v) + ' % об.д.', v => { o2Set = v; });
+  GA.bindRange('speed', v => '×' + fmt(v, 2), v => { stage.timeScale = v; });
+  GA.bindToggle('tLabels', true, v => GA.labels.setVisible(v));
+  GA.bindToggle('tAir', true, v => { showAir = v; });
+  GA.bindToggle('tPoison', poisonInit, v => { poisonOn = v; });
+  el('bNew').addEventListener('click', resetSensor);
+  const bPause = el('bPause');
+  bPause.addEventListener('click', () => {
+    stage.paused = !stage.paused;
+    bPause.textContent = stage.paused ? '▶ Продолжить' : '⏸ Пауза';
+  });
+  const VIEWS = [
+    [new V3(-5.6, 3.0, 6.6), new V3(-0.7, 0, 0)],
+    [new V3(0, 0.2, 7.2), new V3(0, 0, 0)],
+    [new V3(-0.9, 0.5, 2.4), new V3(0.15, 0, 0)]
+  ];
+  const hv = /view=(\d)/.exec(location.hash);
+  if (hv) { stage.camera.position.copy(VIEWS[+hv[1]][0]); stage.controls.target.copy(VIEWS[+hv[1]][1]); }
+  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+    const v = VIEWS[+b.dataset.view];
+    GA.flyTo(stage, v[0], v[1]);
+  }));
+})();
+</script>
+</body>
+</html>

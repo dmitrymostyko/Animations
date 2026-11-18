@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Как работают сенсоры газоанализаторов</title>
+<link rel="stylesheet" href="common/style.css">
+<style>
+  .title { pointer-events: none; }
+  .title h1 { font-size: 26px; }
+  .title .sub { font-size: 13.5px; max-width: 760px; margin: 4px auto 0; line-height: 1.45; white-space: normal; }
+  #cards {
+    position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 5;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+  }
+  .card {
+    display: block; text-decoration: none; color: var(--text);
+    background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px;
+    padding: 11px 13px 12px; backdrop-filter: blur(6px);
+    transition: transform .15s, border-color .15s, box-shadow .15s;
+  }
+  .card:hover { transform: translateY(-3px); border-color: var(--c); box-shadow: 0 0 18px -4px var(--c); }
+  .card .tag { font-size: 10.5px; letter-spacing: .8px; text-transform: uppercase; color: var(--c); }
+  .card h2 { font-size: 15.5px; margin: 4px 0 5px; font-weight: 600; }
+  .card p { margin: 0; color: var(--muted); font-size: 12.3px; line-height: 1.4; height: 52px; overflow: hidden; }
+  .card .go { margin-top: 7px; font-size: 12px; color: var(--c); }
+  .devname {
+    position: fixed; z-index: 4; transform: translateX(-50%); pointer-events: none; text-align: center;
+    font-size: 15px; font-weight: 600; letter-spacing: .5px; color: #fff; white-space: nowrap;
+  }
+  .devname small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+  .modtag {
+    position: fixed; z-index: 4; pointer-events: none; white-space: nowrap;
+    font-size: 12.5px; padding: 3px 9px; border-radius: 5px; color: #fff;
+    background: rgba(10, 15, 24, .82); border: 1px solid var(--c, #fff); opacity: 0; transition: opacity .2s;
+  }
+  .modtag.on { opacity: 1; }
+  @media (max-width: 1150px) {
+    #cards { grid-template-columns: repeat(3, 1fr); }
+    .card p { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<div class="title">
+  <h1>Как работают сенсоры газоанализаторов</h1>
+  <div class="sub">3D-анимации к статье «Газовая безопасность». Стационарные газоанализаторы СПАРК-БГ и СПАРК-МИГ работают
+    со всеми пятью типами сенсоров: сенсорный модуль сменный. Выберите сенсор, чтобы увидеть, что происходит внутри.</div>
+</div>
+
+<div class="devname" id="nm0">СПАРК-БГ<small>газоанализатор стационарный</small></div>
+<div class="devname" id="nm1">СПАРК-МИГ<small>газоанализатор стационарный</small></div>
+<div class="modtag" id="mt0"></div>
+<div class="modtag" id="mt1"></div>
+
+<div id="cards">
+  <a class="card" href="01_ИК_сенсор.html" style="--c:#ff7a45" data-k="0" data-name="ИК-сенсор (NDIR)">
+    <div class="tag">EX · углеводороды</div>
+    <h2>Инфракрасный</h2>
+    <p>Поглощение ИК-излучения молекулами углеводородов, измерительный и опорный каналы, компенсация пыли и загрязнения оптики.</p>
+    <div class="go">Смотреть анимацию →</div>
+  </a>
+  <a class="card" href="02_ТК_сенсор.html" style="--c:#ffb03b" data-k="1" data-name="термокаталитический сенсор">
+    <div class="tag">EX · горючие газы</div>
+    <h2>Термокаталитический</h2>
+    <p>Беспламенное окисление на катализаторе пеллистора, мост Уитстона, зависимость от кислорода, отравление.</p>
+    <div class="go">Смотреть анимацию →</div>
+  </a>
+  <a class="card" href="03_ЭХ_сенсор.html" style="--c:#4fa8ff" data-k="2" data-name="электрохимический сенсор">
+    <div class="tag">TOX · токсичные газы</div>
+    <h2>Электрохимический</h2>
+    <p>Трёхэлектродная ячейка на CO: капилляр, электроды, потенциостат, ионы H⁺ и электроны, мешающие газы.</p>
+    <div class="go">Смотреть анимацию →</div>
+  </a>
+  <a class="card" href="04_ФИД_сенсор.html" style="--c:#b48cff" data-k="3" data-name="фотоионизационный сенсор (ФИД)">
+    <div class="tag">TOX · ЛОС</div>
+    <h2>Фотоионизационный</h2>
+    <p>УФ-лампа ионизирует органические молекулы, энергии ионизации, поправочные коэффициенты, влажность.</p>
+    <div class="go">Смотреть анимацию →</div>
+  </a>
+  <a class="card" href="05_O2_сенсор.html" style="--c:#7fd0ff" data-k="4" data-name="гальванический сенсор O₂">
+    <div class="tag">OX · кислород</div>
+    <h2>Гальванический O₂</h2>
+    <p>Капилляр, катод, свинцовый анод, ионы OH⁻, расход анода; объёмная доля или парциальное давление.</p>
+    <div class="go">Смотреть анимацию →</div>
+  </a>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+<script src="assets/logo.js"></script>
+<script src="assets/model_spark_bg.js"></script>
+<script src="assets/model_spark_mig.js"></script>
+<script src="common/core.js"></script>
+<script src="common/models.js"></script>
+<script>
+(function () {
+  'use strict';
+  const V3 = THREE.Vector3;
+  const stage = GA.createStage({ cameraPos: new V3(0, 0.35, 8.2), target: new V3(0, 0, 0), floorY: -1.35 });
+  stage.controls.minDistance = 4;
+  stage.controls.maxDistance = 14;
+  stage.controls.enablePan = false;
+  // двойной клик по сцене — плавный возврат к стартовому виду
+  const HOME_POS = stage.camera.position.clone(), HOME_TGT = stage.controls.target.clone();
+  stage.renderer.domElement.addEventListener('dblclick', () => GA.flyTo(stage, HOME_POS, HOME_TGT));
+  GA.addLogo(stage, { maxPx: 760, top: 14, depth: 0.02, layers: 48, spinEvery: 20, spinTime: 2.5 });
+
+  /* ---------- Газоанализаторы ---------- */
+  const FLOOR = -1.2;                         // нижние точки приборов на одном уровне
+  const devs = [GA.buildSparkBG(), GA.buildSparkMIG()].filter(Boolean);
+  devs.forEach((d, i) => {
+    d.position.set(i === 0 ? -1.75 : 1.75, FLOOR + d.userData.size.y / 2, 0);
+    stage.scene.add(d);
+    // точка у сенсорного модуля — для подписи при наведении на карточку
+    d.updateMatrixWorld(true);
+    const box = new THREE.Box3();
+    d.traverse(o => { if (o.isMesh && d.userData.modules.includes(o.material)) box.expandByObject(o); });
+    d.userData.modPt = box.isEmpty() ? new V3(d.position.x, FLOOR + 0.4, 0) : new V3(box.max.x, (box.min.y + box.max.y) / 2, (box.min.z + box.max.z) / 2);
+    d.userData.phase = i * 1.7;
+  });
+
+  /* ---------- Подсветка сенсорных модулей при наведении на карточку ---------- */
+  let hot = null, hotT = 0;
+  document.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('mouseenter', () => { hot = { color: new THREE.Color(getComputedStyle(c).getPropertyValue('--c').trim()), name: c.dataset.name, css: getComputedStyle(c).getPropertyValue('--c') }; hotT = 0; });
+    c.addEventListener('mouseleave', () => { hot = null; });
+  });
+  // &zoom=x,y,z,tx,ty,tz — камера для проверки деталей на снимках
+  { const mz = /[#&]zoom=([-0-9.,]+)/.exec(location.hash); if (mz) { stage.controls.minDistance = 0.1; const v = mz[1].split(',').map(Number); stage.camera.position.set(v[0], v[1], v[2]); stage.controls.target.set(v[3], v[4], v[5]); devs.forEach(d => d.userData.phase = -1e9); } }
+  // &hot=N — имитация наведения на карточку N (для проверки на снимках)
+  { const mh = /[#&]hot=([0-4])/.exec(location.hash); if (mh) document.querySelectorAll('.card')[+mh[1]].dispatchEvent(new Event('mouseenter')); }
+
+  /* ---------- Подписи под приборами ---------- */
+  const v = new V3();
+  function toScreen(p) {
+    v.copy(p).project(stage.camera);
+    return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight, vis: v.z < 1 };
+  }
+
+  let t = 0;
+  stage.onFrame((dt, time, dtReal) => {
+    t += dtReal;
+    devs.forEach((d, i) => {
+      // плавное покачивание, чтобы был виден объём; лицом к зрителю большую часть времени
+      d.rotation.y = d.userData.phase < -1e8 ? 0 : 0.5 * Math.sin(t * 0.32 + d.userData.phase);
+      const k = hot ? 0.55 + 0.45 * Math.sin(t * 5) : 0;
+      for (const m of d.userData.modules) {
+        m.emissive.copy(hot ? hot.color : new THREE.Color(0)).multiplyScalar(0.55 * k);
+      }
+      // название под прибором
+      const s = toScreen(new V3(d.position.x, FLOOR - 0.05, 0));
+      const nm = document.getElementById('nm' + i);
+      nm.style.left = s.x + 'px'; nm.style.top = (s.y + 6) + 'px';
+      // подпись у модуля
+      const mt = document.getElementById('mt' + i);
+      const mp = d.userData.modPt.clone().applyAxisAngle(new V3(0, 1, 0), 0).add(new V3(0.12, 0, 0));
+      const ms = toScreen(mp);
+      mt.classList.toggle('on', !!hot);
+      if (hot) { mt.textContent = 'Сенсорный модуль: ' + hot.name; mt.style.setProperty('--c', hot.css); }
+      mt.style.left = ms.x + 'px'; mt.style.top = (ms.y - 12) + 'px';
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Фотоионизационный сенсор — анимация принципа работы</title>
+<link rel="stylesheet" href="common/style.css">
+<style>
+  #readout { width: 450px; }
+  #readout .top { display: flex; gap: 8px; align-items: flex-start; }
+  #readout .top .vals { flex: 1; min-width: 0; }
+  #readout .unit { font-size: 12.5px; color: var(--muted); margin-top: -2px; }
+  #readout .small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+  #readout .small b { color: #fff; font-weight: 500; }
+  #readout .warn { color: #ffb070; font-size: 12px; min-height: 16px; margin: 3px 0; }
+  #controls { width: 340px; }
+  #controls .row output { width: auto; white-space: nowrap; }
+  #controls .btns.sub button { padding: 4px 8px; font-size: 12.5px; }
+  #controls button.sel { background: rgba(255,106,61,.22); border-color: rgba(255,106,61,.6); color: #fff; }
+  #energy { width: 160px; height: 162px; flex: none; }
+  #energy text { font: 8.5px "Segoe UI", sans-serif; fill: #8a9ab0; }
+  #energy .ax { stroke: #6f7f95; stroke-width: 1; }
+  #energy .sub { stroke: #8a9ab0; stroke-width: 1.4; }
+  #energy .hl text { fill: #fff; font-weight: 600; }
+  #energy .hl line { stroke: #fff; stroke-width: 2; }
+  #info .src { font-size: 11.5px; color: var(--muted); padding-left: 16px; margin: 4px 0 0; }
+  #info table { border-collapse: collapse; font-size: 12px; margin: 4px 0 8px; width: 100%; }
+  #info td, #info th { padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,.07); text-align: left; }
+  #info th { color: var(--muted); font-weight: 500; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+
+<div class="title">
+  <a href="index.html">← все сенсоры</a>
+  <h1>Фотоионизационный сенсор (ФИД)</h1>
+  <div class="sub">Летучие органические вещества · TOX</div>
+</div>
+
+<div id="mols" class="panel">
+  <h3>Обозначения</h3>
+  <div class="m"><span class="dot" style="background:#2b2f36"></span>C — углерод</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.8) 0 12%,rgba(143,152,159,.55) 38%);border:1px solid rgba(190,198,205,.6)"></span>H — водород</div>
+  <div class="m"><span class="dot" style="background:rgba(79,180,255,.5);border:1px solid rgba(79,180,255,.75)"></span>O — кислород</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.8) 0 12%,rgba(200,110,100,.7) 38%);border:1px solid rgba(230,150,140,.7);color:#fff;font:bold 11px/13px sans-serif;text-align:center;text-shadow:0 0 2px #000">+</span>M⁺ — ион молекулы</div>
+  <div class="m"><span class="dot" style="background:#3d8bff;color:#fff;font:bold 11px/13px sans-serif;text-align:center">−</span>e⁻ — электрон</div>
+  <div class="m"><span class="dot" id="lgPh1" style="background:#a46bff;box-shadow:0 0 8px #a46bff"></span><span id="lgPh1t">УФ-фотон 10,0 эВ</span></div>
+  <div class="m"><span class="dot" id="lgPh2" style="background:#f0a6ff;box-shadow:0 0 8px #f0a6ff"></span><span id="lgPh2t">УФ-фотон 10,6 эВ</span></div>
+  <div class="m"><span class="dot" style="background:rgba(207,216,230,.08);border:1px solid rgba(207,216,230,.18);box-shadow:none"></span>прочие молекулы воздуха</div>
+</div>
+
+<div id="info" class="panel">
+  <h3>Принцип работы</h3>
+  <p>Ультрафиолет лампы выбивает электрон из молекулы газа: <b>M + hν → M⁺ + e⁻</b>. Электрическое поле между электродами собирает ионы и электроны, и возникает ток, пропорциональный концентрации.</p>
+  <ol>
+    <li>Газ диффундирует через <b>PTFE-мембрану</b> в маленькую ионизационную камеру перед окном лампы. Мембрана задерживает пыль и капли.</li>
+    <li><b>УФ-лампа</b> — стеклянная колба с инертным газом без электродов внутри. Разряд в ней возбуждается переменным высокочастотным полем. Свет выходит через окно, прозрачное для вакуумного ультрафиолета.<br>Применяют лампы 10,0, 10,6 и 11,7 эВ. Криптоновая лампа «10,6 эВ» с окном из MgF₂ излучает две линии, 10,0 и 10,6 эВ, поэтому этанол (ЭИ 10,47 эВ) ионизирует только линия 10,6 эВ, и отклик на него слабый (CF = 10). Аргоновая лампа 11,7 эВ имеет окно из LiF: оно гигроскопично и разрушается во влажном воздухе, поэтому такая лампа служит намного меньше.</li>
+    <li>Ионизация возможна, только если <b>энергия фотона больше энергии ионизации</b> (ЭИ) молекулы. У компонентов воздуха ЭИ высокая: O₂ — 12,07 эВ, H₂O — 12,6 эВ, N₂ — 15,58 эВ. Поэтому воздух не ионизируется. Метан (12,6 эВ) ФИД тоже не обнаруживает. У большинства ЛОС ЭИ составляет 8–10,5 эВ.<br>Избирательность даёт только выбор лампы: она отсекает вещества с высокой ЭИ. Все вещества с ЭИ ниже энергии фотонов сенсор не различает.</li>
+    <li>Между <b>электродом смещения</b> (+) и <b>собирающим электродом</b> приложено постоянное напряжение. Положительные ионы M⁺ идут к собирающему электроду, электроны — к электроду смещения. Ток составляет пико- и наноамперы, его усиливает встроенный усилитель.</li>
+    <li>На электроде ион получает электрон и снова становится нейтральной молекулой. Метод почти <b>неразрушающий</b>: большинство молекул уходит из камеры неизменными.</li>
+    <li>Отклик на разные вещества разный. Прибор калибруют по <b>изобутилену</b> (обычно сухой смесью из баллона) и показывают концентрацию в изобутиленовом эквиваленте. Для конкретного вещества показание умножают на <b>поправочный коэффициент CF</b>.</li>
+  </ol>
+  <table>
+    <tr><th>Вещество</th><th>ЭИ, эВ</th><th>CF 10,6</th><th>CF 11,7</th></tr>
+    <tr><td>Изобутилен</td><td>9,22</td><td>1</td><td>1</td></tr>
+    <tr><td>Толуол</td><td>8,82</td><td>0,50</td><td>0,51</td></tr>
+    <tr><td>Ацетон</td><td>9,71</td><td>1,1</td><td>1,4</td></tr>
+    <tr><td>Этанол</td><td>10,47</td><td>10</td><td>3,1</td></tr>
+    <tr><td>Метанол</td><td>10,85</td><td>не опр.</td><td>2,5</td></tr>
+    <tr><td>Метан</td><td>12,61</td><td>не опр.</td><td>не опр.</td></tr>
+  </table>
+  <p><b>Ограничения</b></p>
+  <ul style="padding-left:18px;margin:4px 0 8px">
+    <li><b>Влажность</b>. Пары воды поглощают УФ, не ионизируясь, и сигнал снижается. По данным RAE Systems, 15 000 ppm паров воды дают около −20 %, 30 000 ppm — около −40 %. Конденсат на изоляторах даёт токи утечки. Для защиты от них применяют, например, дополнительный «охранный» электрод в сенсорах Ion Science.</li>
+    <li><b>Загрязнение окна лампы</b>: продукты ионизации оседают на окне и ослабляют УФ. Окно периодически чистят, после очистки прибор перекалибровывают.</li>
+    <li>Метан, метанол и пары воды в высоких концентрациях <b>гасят</b> сигнал других веществ.</li>
+    <li>Сенсор отвечает на сумму всех ионизируемых веществ. Для конкретного вещества его применяют, когда состав смеси известен.</li>
+  </ul>
+  <p class="note">Условности анимации. Камера и молекулы сильно увеличены, концентрации и скорости изменены для наглядности. Доли фотонов двух линий лампы условные. Ток ионизации показан в условном масштабе (10 пА на 1 ppm изобутилена). Показание рассчитывается по коэффициентам CF, видимые акты ионизации иллюстрируют процесс. Влияние влажности и загрязнения окна задано качественной моделью.</p>
+  <p style="margin-bottom:2px"><b>Источники</b></p>
+  <ul class="src">
+    <li>RAE Systems (Honeywell), TN-106 «Correction Factors, Ionization Energies and Calibration Characteristics», ред. 08/2010</li>
+    <li>Ion Science, MiniPID: руководство по эксплуатации и уходу за лампой, сведения об охранном электроде</li>
+    <li>Heraeus, Excelitas — технические данные ламп для ФИД (линии 10,0/10,6 эВ Kr, 11,7 эВ Ar, окна MgF₂ и LiF)</li>
+    <li>NIST Chemistry WebBook — энергии ионизации</li>
+  </ul>
+</div>
+
+<div id="controls" class="panel">
+  <h3>Управление</h3>
+  <div class="btns sub" style="margin-top:0">
+    <button data-sub="IBUT">Изобутилен</button>
+    <button data-sub="TOL">Толуол</button>
+    <button data-sub="ACET">Ацетон</button>
+    <button data-sub="ETOH">Этанол</button>
+    <button data-sub="MEOH">Метанол</button>
+    <button data-sub="CH4">Метан</button>
+  </div>
+  <div class="row"><label for="conc">Концентрация вещества в воздухе</label><output for="conc"></output></div>
+  <input type="range" id="conc" min="0" max="100" step="1" value="50">
+  <div class="row"><label for="rh">Влажность воздуха</label><output for="rh"></output></div>
+  <input type="range" id="rh" min="0" max="95" step="1" value="30">
+  <div class="row"><label for="speed">Скорость анимации</label><output for="speed"></output></div>
+  <input type="range" id="speed" min="0.1" max="1.5" step="0.05" value="0.6">
+  <div class="btns sys">
+    <button id="bPause">⏸ Пауза</button>
+    <button class="toggle" id="tLabels">Подписи</button>
+    <button class="toggle" id="tAir">Молекулы воздуха</button>
+  </div>
+  <div class="btns">
+    <button data-lamp="10.6" title="Криптоновая лампа, 10,0 и 10,6 эВ">Лампа 10,6</button>
+    <button data-lamp="11.7" title="Аргоновая лампа, 11,6 и 11,8 эВ">Лампа 11,7</button>
+    <button class="toggle" id="tCF">Пересчёт по CF</button>
+    <button class="toggle" id="tDirt">Загрязнение окна</button>
+  </div>
+  <div class="btns">
+    <button data-view="0">Общий вид</button>
+    <button data-view="1">Сбоку</button>
+    <button data-view="2">Камера</button>
+  </div>
+</div>
+
+<div id="readout" class="panel">
+  <h3>Показание газоанализатора</h3>
+  <div class="top">
+    <div class="vals">
+      <div class="big"><span id="rd">0</span> <small>ppm</small></div>
+      <div class="unit" id="unit">в изобутиленовом эквиваленте</div>
+      <div class="warn" id="warn"></div>
+      <div class="small">Фактически: <b id="act">0</b> ppm <span id="actName"></span><br>
+        Фотоны лампы: <b id="phE">10,0 и 10,6</b> эВ<br>
+        ЭИ вещества: <b id="ie">9,22</b> эВ · CF: <b id="cf">1</b><br>
+        H₂O: <b id="h2o">0</b> ppm (−<b id="q">0</b> %) · окно: <b id="win">100</b> %</div>
+    </div>
+    <svg id="energy" viewBox="0 0 180 196"></svg>
+  </div>
+  <div class="charts">
+    <div class="chb">
+      <div class="chart-t">Ток ионизации, пА</div>
+      <canvas class="ch" id="chartS"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#b48cff"></i>ток</span></span></div>
+    </div>
+    <div class="chb">
+      <div class="chart-t">Концентрация, ppm</div>
+      <canvas class="ch" id="chartC"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#8a96a8"></i>фактически</span><span><i style="background:#4fd18b"></i>показание</span></span></div>
+    </div>
+  </div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+<script src="assets/logo.js"></script>
+<script src="common/core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const V3 = THREE.Vector3;
+  const lerp = THREE.MathUtils.lerp;
+  const el = id => document.getElementById(id);
+  const fmt = (v, d = 1) => v.toFixed(d).replace('.', ',');
+
+  /* ===================== Данные ===================== */
+  // ЭИ — NIST; CF — RAE Systems TN-106 (ред. 08/2010); null — не определяется
+  const SUB = {
+    IBUT: { name: 'Изобутилен', gen: 'изобутилена', ie: 9.22, cf: { '10.6': 1, '11.7': 1 } },
+    TOL:  { name: 'Толуол', gen: 'толуола', ie: 8.82, cf: { '10.6': 0.50, '11.7': 0.51 } },
+    ACET: { name: 'Ацетон', gen: 'ацетона', ie: 9.71, cf: { '10.6': 1.1, '11.7': 1.4 } },
+    ETOH: { name: 'Этанол', gen: 'этанола', ie: 10.47, cf: { '10.6': 10, '11.7': 3.1 } },
+    MEOH: { name: 'Метанол', gen: 'метанола', ie: 10.85, cf: { '10.6': null, '11.7': 2.5 } },
+    CH4:  { name: 'Метан', gen: 'метана', ie: 12.61, cf: { '10.6': null, '11.7': null } }
+  };
+  // Линии ламп: энергия, доля фотонов (условно), цвет
+  const LAMPS = {
+    '10.6': { gas: 'криптон', win: 'MgF₂', glow: 0xc8a8ff, lines: [{ e: 10.03, w: 0.8, c: 0xa46bff }, { e: 10.64, w: 0.2, c: 0xf0a6ff }] },
+    '11.7': { gas: 'аргон', win: 'LiF', glow: 0x9fa8ff, lines: [{ e: 11.62, w: 0.6, c: 0x7f8cff }, { e: 11.83, w: 0.4, c: 0xb8c4ff }] }
+  };
+  const IE_H2O = 12.62;
+
+  /* ===================== Сцена ===================== */
+  const stage = GA.createStage({ cameraPos: new V3(-5.0, 2.4, 6.6), target: new V3(-0.2, -0.45, 0), floorY: -3.0 });
+  const scene = stage.scene;
+  GA.labels = new GA.Labels();
+  GA.addLogo(stage, { maxPx: 760, top: 14, depth: 0.02, layers: 48, spinEvery: 20, spinTime: 2.5 });
+
+  const R = 1.2, RIN = R - 0.15;
+  const X0 = -1.5;                 // мембрана
+  const XW = 0.25;                 // окно лампы
+  const X1 = 1.75;                 // торец корпуса
+  const RL = 0.55;                 // радиус колбы лампы
+  const YE = 0.74;                 // электроды: y = ±YE
+  const EX0 = X0 + 0.15, EX1 = XW - 0.08, EZ = 0.62;
+  const BOX = new V3(0.0, -2.35, 0);
+
+  /* ---------- Корпус ---------- */
+  const innerMetal = new THREE.MeshStandardMaterial({ color: 0x4f5864, metalness: 0.7, roughness: 0.45 });
+  const shellGeo = new THREE.CylinderGeometry(R, R, X1 - X0, 72, 1, true);
+  const shellInner = new THREE.Mesh(shellGeo, Object.assign(innerMetal.clone(), { side: THREE.BackSide }));
+  shellInner.rotation.z = Math.PI / 2; shellInner.position.x = (X0 + X1) / 2;
+  scene.add(shellInner);
+  const glass = GA.mat.glassShell(); glass.side = THREE.FrontSide;
+  const shell = new THREE.Mesh(shellGeo, glass);
+  shell.rotation.z = Math.PI / 2; shell.position.x = (X0 + X1) / 2; shell.renderOrder = 10;
+  scene.add(shell);
+  const metal = GA.mat.metal();
+  for (const x of [X0, X1]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.05, 12, 96), metal);
+    ring.rotation.y = Math.PI / 2; ring.position.x = x;
+    scene.add(ring);
+  }
+  {
+    const pts = [];
+    for (let k = 0; k < 12; k++) {
+      const a = k / 12 * Math.PI * 2;
+      pts.push(X0, Math.cos(a) * R, Math.sin(a) * R, X1, Math.cos(a) * R, Math.sin(a) * R);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x9fb4cc, transparent: true, opacity: 0.18 })));
+  }
+  // тыльный торец: изнутри непрозрачный, снаружи полупрозрачный
+  {
+    const capGeo = new THREE.CircleGeometry(R, 72);
+    const capIn = new THREE.Mesh(capGeo, innerMetal);
+    capIn.position.x = X1; capIn.rotation.y = -Math.PI / 2;
+    scene.add(capIn);
+    const capOut = new THREE.Mesh(capGeo, new THREE.MeshStandardMaterial({ color: 0x9aa6b4, metalness: 0.85, roughness: 0.35, transparent: true, opacity: 0.25, depthWrite: false }));
+    capOut.position.x = X1 + 0.002; capOut.rotation.y = Math.PI / 2; capOut.renderOrder = 10;
+    scene.add(capOut);
+  }
+  // PTFE-мембрана (тканая)
+  const membrane = new THREE.Mesh(new THREE.CircleGeometry(R, 72), new THREE.MeshStandardMaterial({
+    color: 0xf2f4f6, roughness: 0.9, alphaMap: GA.meshTexture(60), transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false
+  }));
+  membrane.position.x = X0; membrane.rotation.y = -Math.PI / 2; membrane.renderOrder = 11;
+  scene.add(membrane);
+
+  /* ---------- Электроды ---------- */
+  const elecMat = GA.mat.metal(0xc4ccd6);
+  function plate(y) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(EX1 - EX0, 0.03, 2 * EZ), elecMat);
+    m.position.set((EX0 + EX1) / 2, y, 0);
+    scene.add(m);
+    return m;
+  }
+  const plateTop = plate(YE), plateBot = plate(-YE);
+  // выводы к источнику смещения и усилителю
+  const wireMat = GA.mat.gold();
+  const YB = BOX.y + 0.3;
+  function rod(x, y0, y1, z) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, Math.abs(y1 - y0), 10), wireMat);
+    m.position.set(x, (y0 + y1) / 2, z);
+    scene.add(m);
+  }
+  rod(-0.3, -YE, YB, 0);                 // собирающий электрод
+  rod(-1.0, YE, YB, -EZ - 0.06);         // электрод смещения — по дальней стороне камеры
+  {
+    const t = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.08), wireMat);
+    t.position.set(-1.0, YE, -EZ - 0.03); scene.add(t);
+  }
+  const box = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.6, 0.8), new THREE.MeshStandardMaterial({ color: 0x26303d, metalness: 0.3, roughness: 0.5, transparent: true, opacity: 0.88 }));
+  box.position.copy(BOX); scene.add(box);
+  const boxLed = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({ color: 0x0f3a24 }));
+  boxLed.position.set(BOX.x, BOX.y, 0.401); scene.add(boxLed);
+
+  /* ---------- УФ-лампа ---------- */
+  const lampGrp = new THREE.Group(); scene.add(lampGrp);
+  const LX0 = XW + 0.06, LX1 = X1 - 0.12;
+  const bulb = new THREE.Mesh(new THREE.CylinderGeometry(RL, RL, LX1 - LX0, 48, 1, true), new THREE.MeshPhysicalMaterial({
+    color: 0xd8c8ff, roughness: 0.05, metalness: 0, envMapIntensity: 0.25, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false
+  }));
+  bulb.rotation.z = Math.PI / 2; bulb.position.x = (LX0 + LX1) / 2; bulb.renderOrder = 8;
+  lampGrp.add(bulb);
+  const bulbEnd = new THREE.Mesh(new THREE.SphereGeometry(RL, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), bulb.material);
+  bulbEnd.rotation.z = -Math.PI / 2; bulbEnd.position.x = LX1; bulbEnd.scale.y = 0.35;
+  lampGrp.add(bulbEnd);
+  const plasmaMat = new THREE.MeshBasicMaterial({ color: 0xa46bff, transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false });
+  const plasma = new THREE.Mesh(new THREE.CylinderGeometry(RL * 0.82, RL * 0.82, LX1 - LX0 - 0.1, 32), plasmaMat);
+  plasma.rotation.z = Math.PI / 2; plasma.position.x = (LX0 + LX1) / 2; plasma.renderOrder = 9;
+  lampGrp.add(plasma);
+  const lampGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GA.glowTexture(), color: 0xa46bff, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.6 }));
+  lampGlow.material.toneMapped = false; lampGlow.scale.setScalar(2.2); lampGlow.position.x = (LX0 + LX1) / 2; lampGlow.renderOrder = 9;
+  lampGrp.add(lampGlow);
+  // свет разряда — подсвечивает окно, электроды и корпус
+  const lampLight = new THREE.PointLight(0xa46bff, 1.2, 4.5, 2);
+  lampLight.position.x = (LX0 + LX1) / 2;
+  lampGrp.add(lampLight);
+  // мерцание разряда (не зависит от паузы и скорости анимации)
+  let flick = 1, flickT = 0;
+  const lampColor = new THREE.Color(0xa46bff);
+  function stepFlicker(dtReal) {
+    flickT += dtReal;
+    const t = flickT;
+    const target = 0.72 + 0.14 * Math.sin(t * 23) + 0.09 * Math.sin(t * 57 + 1.3) + 0.06 * Math.sin(t * 131 + 0.4) + (Math.random() - 0.5) * 0.12;
+    flick += (target - flick) * Math.min(1, dtReal * 30);
+    const k = THREE.MathUtils.clamp(flick, 0.35, 1.1);
+    plasmaMat.opacity = 0.7 + 0.25 * Math.min(1, k);
+    plasmaMat.color.copy(lampColor).multiplyScalar(0.45 + 0.45 * k);
+    lampGlow.material.opacity = 0.35 * k;
+    lampGlow.scale.setScalar(2.0 + 0.5 * k);
+    lampLight.intensity = 1.6 * k;
+  }
+  // окно лампы
+  const windowMesh = new THREE.Mesh(new THREE.CylinderGeometry(RL, RL, 0.06, 48), new THREE.MeshPhysicalMaterial({
+    color: 0xd8ccff, roughness: 0.02, metalness: 0, envMapIntensity: 0.3, transparent: true, opacity: 0.3, depthWrite: false
+  }));
+  windowMesh.rotation.z = Math.PI / 2; windowMesh.position.x = XW + 0.03; windowMesh.renderOrder = 9;
+  scene.add(windowMesh);
+  // плёнка загрязнения на окне
+  const filmMat = new THREE.MeshStandardMaterial({ color: 0x7a5a32, roughness: 0.9, transparent: true, opacity: 0, depthWrite: false });
+  const film = new THREE.Mesh(new THREE.CircleGeometry(RL, 48), filmMat);
+  film.position.x = XW - 0.004; film.rotation.y = -Math.PI / 2; film.renderOrder = 12;
+  scene.add(film);
+  // кольца ВЧ-возбуждения разряда
+  for (const x of [LX0 + 0.35, LX1 - 0.25]) {
+    const r = new THREE.Mesh(new THREE.TorusGeometry(RL + 0.04, 0.035, 10, 48), GA.mat.metal(0xb87333));
+    r.rotation.y = Math.PI / 2; r.position.x = x;
+    scene.add(r);
+  }
+  // держатель лампы
+  {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(RL + 0.02, RIN + 0.1, 64), new THREE.MeshStandardMaterial({ color: 0x9aa6b4, metalness: 0.6, roughness: 0.4, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false }));
+    ring.position.x = XW; ring.rotation.y = Math.PI / 2; ring.renderOrder = 11;
+    scene.add(ring);
+  }
+
+  /* ---------- Подписи ---------- */
+  GA.labels.setAvoid(new THREE.Box3(new V3(X0 - 0.1, BOX.y - 0.35, -R - 0.1), new V3(X1 + 0.1, R + 0.1, R + 0.1)));
+  GA.labels.add('PTFE-мембрана', new V3(X0, RIN - 0.1, 0.3), { side: 'top' });
+  GA.labels.add('Электрод смещения (+)', new V3(-0.5, YE + 0.02, 0.3), { side: 'top' });
+  const lbWin = GA.labels.add('Окно лампы (MgF₂)', new V3(XW + 0.03, RL, 0), { side: 'top' });
+  const lbLamp = GA.labels.add('УФ-лампа (криптон)', new V3(1.15, RL, 0), { side: 'top' });
+  GA.labels.add('Собирающий электрод', new V3(-0.6, -YE, 0.4), { side: 'bottom' });
+  GA.labels.add('ВЧ-возбуждение разряда', new V3(LX1 - 0.25, -RL - 0.04, 0), { side: 'bottom' });
+  GA.labels.add('Источник смещения и усилитель', new V3(BOX.x + 0.9, BOX.y - 0.3, 0.4), { side: 'bottom' });
+  function setLabel(it, html) { it.el.innerHTML = html; it.w = 0; }
+
+  /* ===================== Газовая среда ===================== */
+  let sub = 'IBUT', lamp = '10.6', concSet = 50, rh = 30, showAir = true, dirtOn = false, cfOn = false;
+  {
+    const hs = /[#&]sub=([A-Z0-9]+)/.exec(location.hash); if (hs && SUB[hs[1]]) sub = hs[1];
+    const hl = /[#&]lamp=(10\.6|11\.7)/.exec(location.hash); if (hl) lamp = hl[1];
+    const hc = /[#&]conc=([0-9.]+)/.exec(location.hash); if (hc) concSet = +hc[1];
+    const hr = /[#&]rh=([0-9.]+)/.exec(location.hash); if (hr) rh = +hr[1];
+  }
+  const h2oPpm = () => rh / 100 * 23400;          // насыщение при 20 °C ≈ 2,34 % об.
+  function pickType() {
+    const fT = concSet > 0 ? 0.2 * Math.pow(concSet / 100, 0.5) : 0;
+    const fW = 0.14 * rh / 95;
+    const r = Math.random();
+    if (r < fT) return sub;
+    if (r < fT + fW) return 'H2O';
+    return 'AIR';
+  }
+  const CX1 = XW - 0.05;
+  function confine(p, v, m) {
+    const r2 = p.y * p.y + p.z * p.z;
+    if (!m.inside) {
+      if (p.x > X0) {
+        if (r2 < RIN * RIN) m.inside = true;
+        else { p.x = X0 - 0.001; v.x = -Math.abs(v.x); }
+      }
+      return true;
+    }
+    if (p.x < X0) {
+      if (r2 < RIN * RIN) m.inside = false;
+      else { p.x = X0 + 0.001; v.x = Math.abs(v.x); }
+      return true;
+    }
+    if (p.x > CX1) { p.x = CX1; v.x = -Math.abs(v.x); }
+    // электроды — отражение
+    if (p.x > EX0 && p.x < EX1 && Math.abs(p.z) < EZ) {
+      if (p.y > YE - 0.08 && p.y < YE + 0.08) { p.y = p.y > YE ? YE + 0.08 : YE - 0.08; v.y = -v.y; }
+      if (p.y < -YE + 0.08 && p.y > -YE - 0.08) { p.y = p.y < -YE ? -YE - 0.08 : -YE + 0.08; v.y = -v.y; }
+    }
+    if (r2 > RIN * RIN) {
+      const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+      if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+      p.y = ny * RIN; p.z = nz * RIN;
+    }
+    return true;
+  }
+  const gas = new GA.GasField({
+    scene, count: 190, speed: 1.5, collide: 0.9,
+    box: { xMin: -6.0, xMax: X0, yMin: -1.6, yMax: 1.6, zMin: -1.6, zMax: 1.6 },
+    pickType, confine
+  });
+  for (let i = 0; i < 26; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (RIN - 0.05);
+    const m = gas.spawn(null, true, new V3(lerp(X0 + 0.1, CX1 - 0.05, Math.random()), Math.cos(a) * r, Math.sin(a) * r));
+    m.inside = true;
+  }
+  function refreshAmbient(dt) {
+    for (const m of gas.list) {
+      if (m.dead || m.inside || m.frozen) continue;
+      const w = THREE.MathUtils.clamp((X0 - 0.4 - m.obj.position.x) / 2.5, 0, 1);
+      if (Math.random() < dt * 1.2 * w) {
+        const t = pickType();
+        if (t !== m.type) { const nm = gas.spawn(t, true, m.obj.position); nm.vel.copy(m.vel); gas.remove(m); }
+      }
+    }
+  }
+
+  /* ===================== Вспышки, знаки зарядов ===================== */
+  const flashes = [];
+  for (let i = 0; i < 60; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GA.glowTexture(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    s.visible = false; s.renderOrder = 21; scene.add(s);
+    flashes.push({ s, life: 0, max: 1, size: 0.5 });
+  }
+  function flash(pos, color, size = 0.5, life = 0.5) {
+    const f = flashes.find(f => f.life <= 0) || flashes[0];
+    f.s.position.copy(pos); f.s.material.color.setHex(color);
+    f.life = f.max = life; f.size = size; f.s.visible = true;
+  }
+  function stepFlashes(dt) {
+    for (const f of flashes) {
+      if (f.life <= 0) continue;
+      f.life -= dt;
+      const k = Math.max(0, f.life / f.max);
+      f.s.material.opacity = k;
+      f.s.scale.setScalar(f.size * (1.5 - 0.7 * k));
+      if (f.life <= 0) f.s.visible = false;
+    }
+  }
+  function signTex(sign, bg) {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d');
+    if (bg) {
+      const gr = g.createRadialGradient(26, 24, 4, 32, 32, 30);
+      gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.25, bg); gr.addColorStop(1, bg);
+      g.fillStyle = gr; g.beginPath(); g.arc(32, 32, 29, 0, 7); g.fill();
+    }
+    g.lineCap = 'round';
+    for (const [w, col] of (bg ? [[7, '#ffffff']] : [[13, 'rgba(0,0,0,.55)'], [7, '#ffffff']])) {
+      g.strokeStyle = col; g.lineWidth = w;
+      g.beginPath(); g.moveTo(16, 32); g.lineTo(48, 32);
+      if (sign > 0) { g.moveTo(32, 16); g.lineTo(32, 48); }
+      g.stroke();
+    }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
+  const plusMat = new THREE.SpriteMaterial({ map: signTex(1), transparent: true, depthWrite: false, depthTest: false });
+  const eMat = new THREE.SpriteMaterial({ map: signTex(-1, '#3d8bff'), depthWrite: false });
+
+  /* ===================== Фотоны ===================== */
+  const photons = [];
+  const phPool = [];
+  function newPhoton() {
+    const s = phPool.pop() || new THREE.Sprite(new THREE.SpriteMaterial({ map: GA.glowTexture(), transparent: true, opacity: 0.95, depthWrite: false }));
+    s.renderOrder = 20; s.visible = true; scene.add(s);
+    return s;
+  }
+  let phAcc = 0, transmission = 1, film01 = 0;
+  const stats = { photons: 0, ion: 0, quench: 0, neutral: 0 };
+  function emitPhotons(dt) {
+    phAcc += dt * 40 * transmission;
+    while (phAcc >= 1) {
+      phAcc -= 1;
+      const L = LAMPS[lamp];
+      const line = Math.random() < L.lines[0].w ? L.lines[0] : L.lines[1];
+      const s = newPhoton();
+      s.material.color.setHex(line.c);
+      s.scale.setScalar(0.2);
+      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (RL - 0.05);
+      s.position.set(XW - 0.01, Math.cos(a) * r, Math.sin(a) * r);
+      const dir = new V3(-1, (Math.random() - 0.5) * 0.9, (Math.random() - 0.5) * 0.9).normalize();
+      photons.push({ s, v: dir.multiplyScalar(5.5), e: line.e });
+      stats.photons++;
+    }
+  }
+  function killPhoton(i) { const p = photons[i]; scene.remove(p.s); phPool.push(p.s); photons.splice(i, 1); }
+
+  const pops = {};
+  function popOnce(key, every, text, anchor, ttl = 2.2) {
+    if (stage.time - (pops[key] || -99) < every) return;
+    pops[key] = stage.time;
+    GA.labels.pop(text, anchor, ttl);
+  }
+  // вероятность ионизации при попадании фотона — подобрана так, чтобы видимая
+  // частота ионизаций соответствовала относительному отклику (1/CF)
+  function ionProb(type, e) {
+    const S = SUB[type];
+    if (!S || e <= S.ie) return 0;
+    const cf = S.cf[lamp];
+    if (!cf) return 0;
+    const L = LAMPS[lamp];
+    const fAbove = L.lines.reduce((s, l) => s + (l.e > S.ie ? l.w : 0), 0);
+    return Math.min(0.95, 0.55 / cf / fAbove);
+  }
+  const HITR = 0.17;
+  function stepPhotons(dt) {
+    const inside = gas.list.filter(m => !m.dead && m.inside && !m.frozen && !m.state.ion);
+    for (let i = photons.length - 1; i >= 0; i--) {
+      const ph = photons[i], p = ph.s.position;
+      p.addScaledVector(ph.v, dt);
+      if (p.x < X0 + 0.02 || p.y * p.y + p.z * p.z > RIN * RIN || (p.x > EX0 && p.x < EX1 && Math.abs(p.z) < EZ && Math.abs(p.y) > YE)) { killPhoton(i); continue; }
+      let done = false;
+      for (const m of inside) {
+        if (m.state.ion || m.dead) continue;
+        if (m.obj.position.distanceToSquared(p) > HITR * HITR) continue;
+        if (m.state.hitBy === ph) continue;
+        m.state.hitBy = ph;
+        if (m.type === 'H2O' || m.type === 'CH4' || (m.type === 'MEOH' && lamp === '10.6')) {
+          // поглощение без ионизации (гашение)
+          if (Math.random() < 0.35) {
+            flash(p, 0x8090c0, 0.18, 0.3); stats.quench++;
+            if (m.type === 'H2O') popOnce('q', 9, 'H₂O поглотила фотон — без ионизации', m.obj);
+            killPhoton(i); done = true; break;
+          }
+          continue;
+        }
+        if (Math.random() < ionProb(m.type, ph.e)) { ionize(m, ph); killPhoton(i); done = true; break; }
+      }
+      if (done) continue;
+    }
+  }
+
+  /* ===================== Ионы и электроны ===================== */
+  const electrons = [];
+  function ionize(m, ph) {
+    m.frozen = true;
+    m.state.ion = true;
+    GA.setCharge(m.obj, true);
+    const plus = new THREE.Sprite(plusMat);
+    plus.scale.setScalar(0.17 * GA.molK / GA.molScale); plus.renderOrder = 22;
+    m.obj.add(plus); m.state.plus = plus;
+    m.state.drift = new V3((Math.random() - 0.5) * 0.15, -1.1, (Math.random() - 0.5) * 0.15);
+    stats.ion++;
+    const p = m.obj.position;
+    flash(p, 0xffffff, 0.35, 0.35);
+    popOnce('ion', 6, 'M + hν → M⁺ + e⁻', p.clone());
+    const e = new THREE.Sprite(eMat); e.scale.setScalar(0.1 * GA.molK); e.renderOrder = 22;
+    e.position.copy(p).add(new V3(0, 0.08, 0)); scene.add(e);
+    electrons.push({ s: e, v: new V3((Math.random() - 0.5) * 0.3, 3.2, (Math.random() - 0.5) * 0.3) });
+  }
+  function stepCharges(dt) {
+    for (const m of gas.list) {
+      if (m.dead || !m.state.ion) continue;
+      const p = m.obj.position;
+      // в поле: дрейф к собирающему электроду (−y) с небольшим блужданием
+      m.state.drift.x += (Math.random() - 0.5) * dt * 1.5;
+      m.state.drift.z += (Math.random() - 0.5) * dt * 1.5;
+      p.addScaledVector(m.state.drift, dt);
+      m.obj.rotation.x += dt * 1.2; m.obj.rotation.y += dt * 0.8;
+      const onPlate = p.x > EX0 && p.x < EX1 && Math.abs(p.z) < EZ;
+      if (p.y <= -YE + 0.1 && onPlate) {
+        // нейтрализация: ион получает электрон и снова становится молекулой
+        m.obj.remove(m.state.plus); m.state.plus = null;
+        GA.setCharge(m.obj, false);
+        m.state.ion = false; m.frozen = false; stats.neutral++;
+        flash(new V3(p.x, -YE, p.z), 0xff9a8a, 0.3, 0.35);
+        popOnce('neu', 8, 'M⁺ + e⁻ → M: молекула снова нейтральна', new V3(p.x, -YE, p.z));
+        m.vel.set((Math.random() - 0.5), 0.8 + Math.random() * 0.6, (Math.random() - 0.5)).multiplyScalar(gas.speed * 0.8);
+        p.y = -YE + 0.11;
+      } else if (p.y < -RIN + 0.15 || p.x < X0 + 0.05 || p.x > CX1) {
+        // вне области поля — молекула нейтрализуется у стенки
+        m.obj.remove(m.state.plus); m.state.plus = null; GA.setCharge(m.obj, false);
+        m.state.ion = false; m.frozen = false;
+        p.y = Math.max(p.y, -RIN + 0.16); p.x = THREE.MathUtils.clamp(p.x, X0 + 0.06, CX1 - 0.01);
+      }
+    }
+    for (let i = electrons.length - 1; i >= 0; i--) {
+      const e = electrons[i], p = e.s.position;
+      p.addScaledVector(e.v, dt);
+      if (p.y >= YE - 0.04 || p.y > RIN - 0.1) {
+        if (p.x > EX0 && p.x < EX1 && Math.abs(p.z) < EZ) flash(new V3(p.x, YE, p.z), 0x5aa8ff, 0.2, 0.25);
+        scene.remove(e.s); electrons.splice(i, 1);
+      }
+    }
+  }
+
+  /* ===================== Модель сигнала ===================== */
+  let inC = 0, inH2O = 0, isoEq = 0, reading = 0, chartMax = 100;
+  // самописец 1 — измеряемый ток ионизации (условный масштаб: 10 пА на 1 ppm изобутилена),
+  // 2 — пересчитанная концентрация
+  const PA_PER_PPM = 10;
+  const chartS = new GA.StripChart(el('chartS'), [
+    { color: '#b48cff', data: [] }
+  ], { max: 1000, len: 260, period: 0.05, gridLines: [{ v: 0 }] });
+  const chartC = new GA.StripChart(el('chartC'), [
+    { color: '#8a96a8', data: [] }, { color: '#4fd18b', data: [] }
+  ], { max: 100, len: 260, period: 0.05, gridLines: [{ v: 0 }] });
+  let uiAcc = 0;
+  function quench(ppm) { return Math.exp(-ppm / 67000); }   // ≈ −20 % при 15 000 ppm, −36 % при 30 000 ppm
+  function stepSignal(dt, dtReal) {
+    inC = GA.approach(inC, concSet, 1 / 2.5, dt);
+    inH2O = GA.approach(inH2O, h2oPpm(), 1 / 2.5, dt);
+    // загрязнение окна: плёнка нарастает, при выключении — окно очищено
+    film01 = dirtOn ? Math.min(1, film01 + dt / 12) : 0;
+    filmMat.opacity = 0.75 * film01;
+    transmission = 1 - 0.65 * film01;
+    const S = SUB[sub], cf = S.cf[lamp];
+    const rf = cf ? 1 / cf : 0;
+    const q = quench(inH2O + (sub === 'CH4' || sub === 'MEOH' ? inC : 0));
+    isoEq = GA.approach(isoEq, inC * rf * transmission * q, 3, dt);
+    reading = cfOn && cf ? isoEq * cf : isoEq;
+
+    stepFlicker(dtReal);
+    boxLed.material.color.setRGB(0.06, 0.2 + 0.6 * Math.min(1, isoEq / 100), 0.12);
+
+    if (!stage.paused) {
+      const mx = Math.max(inC, reading);
+      const target = mx < 85 ? 100 : mx < 230 ? 250 : 1000;
+      chartMax = target; chartC.max = target * 1.25; chartS.max = target * PA_PER_PPM * 1.25;
+      // линии сетки — на верхней границе шкалы, с запасом сверху под подпись
+      chartS.gridLines = [{ v: target * PA_PER_PPM, t: (target * PA_PER_PPM).toFixed(0) + ' пА' }, { v: 0 }];
+      chartC.gridLines = [{ v: target, t: target + ' ppm' }, { v: 0 }];
+      chartS.push([Math.min(isoEq * PA_PER_PPM, chartS.max)], dtReal);
+      chartC.push([Math.min(inC, chartMax), Math.min(reading, chartMax)], dtReal);
+    }
+    uiAcc += dtReal;
+    if (uiAcc > 0.15) {
+      uiAcc = 0;
+      el('rd').textContent = cfOn && !cf ? '—' : (reading < 10 ? fmt(reading, 1) : reading.toFixed(0));
+      el('unit').textContent = cfOn ? (cf ? S.gen + ' (с учётом CF)' : S.gen + ': не определяется') : 'в изобутиленовом эквиваленте';
+      el('act').textContent = inC.toFixed(0);
+      el('actName').textContent = S.gen;
+      el('ie').textContent = fmt(S.ie, 2);
+      el('cf').textContent = cf ? String(cf).replace('.', ',') : 'не опр.';
+      el('h2o').textContent = (inH2O / 1000).toFixed(1).replace('.', ',') + ' тыс.';
+      el('q').textContent = ((1 - quench(inH2O)) * 100).toFixed(0);
+      el('win').textContent = (transmission * 100).toFixed(0);
+      let w = '';
+      const L = LAMPS[lamp];
+      const eMax = Math.max(...L.lines.map(l => l.e));
+      if (S.ie >= eMax) w = '⚠ ЭИ ' + S.gen + ' (' + fmt(S.ie, 2) + ' эВ) выше энергии фотонов лампы — вещество не определяется';
+      else if (film01 > 0.3) w = '⚠ Окно лампы загрязнено — сигнал занижен; нужна очистка и перекалибровка';
+      else if (sub === 'ETOH' && lamp === '10.6') w = 'Этанол ионизирует только слабая линия 10,6 эВ — отклик мал (CF = 10)';
+      else if (!cfOn && sub !== 'IBUT') w = 'Показание в изобутиленовом эквиваленте; для ' + S.gen + ' умножьте на CF = ' + String(cf).replace('.', ',');
+      else if (inH2O > 3000) w = '⚠ Пары воды поглощают УФ: показание ниже на ' + ((1 - quench(inH2O)) * 100).toFixed(0) + ' % (калибровка — сухим газом)';
+      el('warn').textContent = w;
+    }
+  }
+
+  /* ===================== Энергетическая диаграмма ===================== */
+  const svg = el('energy');
+  const NS = 'http://www.w3.org/2000/svg';
+  const EY = e => 188 - (e - 8.5) * (174 / 4.5);
+  function sv(tag, attrs, parent = svg) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    parent.appendChild(n); return n;
+  }
+  function drawEnergy() {
+    svg.innerHTML = '';
+    const L = LAMPS[lamp];
+    const eMax = Math.max(...L.lines.map(l => l.e));
+    sv('rect', { x: 22, y: EY(eMax), width: 156, height: EY(8.5) - EY(eMax), fill: 'rgba(164,107,255,.10)' });
+    sv('line', { x1: 22, y1: 4, x2: 22, y2: 190, class: 'ax' });
+    for (let e = 9; e <= 13; e++) {
+      sv('line', { x1: 19, y1: EY(e), x2: 22, y2: EY(e), class: 'ax' });
+      sv('text', { x: 3, y: EY(e) + 3 }).textContent = e;
+    }
+    sv('text', { x: 26, y: 9 }).textContent = 'эВ';
+    for (const l of L.lines) {
+      sv('line', { x1: 22, y1: EY(l.e), x2: 178, y2: EY(l.e), stroke: '#' + new THREE.Color(l.c).getHexString(), 'stroke-width': 1.6, 'stroke-dasharray': '5 3' });
+      sv('text', { x: 158, y: EY(l.e) + (l === L.lines[0] ? 9 : -2), fill: '#' + new THREE.Color(l.c).getHexString() }).textContent = fmt(l.e, 1);
+    }
+    const items = [
+      ['TOL', 'толуол', 8.82], ['IBUT', 'изобутилен', 9.22], ['ACET', 'ацетон', 9.71],
+      ['ETOH', 'этанол', 10.47], ['MEOH', 'метанол', 10.85], ['', 'O₂', 12.07], ['CH4', 'CH₄, H₂O', 12.62]
+    ];
+    for (const [k, t, e] of items) {
+      const g = sv('g', { class: k === sub ? 'hl' : '' });
+      sv('line', { x1: 26, y1: EY(e), x2: 52, y2: EY(e), class: 'sub' }, g);
+      sv('text', { x: 56, y: EY(e) + 3 }, g).textContent = t + ' ' + fmt(e, 2);
+    }
+    sv('text', { x: 90, y: 9 }).textContent = 'N₂ 15,58 ↑';
+  }
+
+  /* ===================== Главный цикл ===================== */
+  stage.onFrame((dt, t, dtReal) => {
+    refreshAmbient(dt);
+    gas.step(dt);
+    if (dt > 0) { emitPhotons(dt); stepPhotons(dt); stepCharges(dt); }
+    for (const m of gas.list) if (!m.dead) m.obj.visible = showAir || m.type !== 'AIR';
+    stepFlashes(dt);
+    stepSignal(dt, dtReal);
+  });
+  window.__dbg = () => JSON.stringify(Object.assign({ reading: +reading.toFixed(2), iso: +isoEq.toFixed(2), ions: gas.list.filter(m => !m.dead && m.state.ion).length, ph: photons.length }, stats));
+
+  /* ===================== Интерфейс ===================== */
+  for (const id of ['conc', 'rh', 'speed']) {
+    const mm = new RegExp('[#&]' + id + '=([0-9.]+)').exec(location.hash);
+    if (mm) el(id).value = mm[1];
+  }
+  GA.bindRange('conc', v => v.toFixed(0) + ' ppm', v => { concSet = v; });
+  GA.bindRange('rh', v => v.toFixed(0) + ' % (20 °C)', v => { rh = v; });
+  GA.bindRange('speed', v => '×' + fmt(v, 2), v => { stage.timeScale = v; });
+  GA.bindToggle('tLabels', true, v => GA.labels.setVisible(v));
+  GA.bindToggle('tAir', true, v => { showAir = v; });
+  GA.bindToggle('tDirt', /[#&]dirt=1/.test(location.hash), v => {
+    dirtOn = v;
+    if (!v && film01 > 0.05) GA.labels.pop('окно очищено — нужна перекалибровка', windowMesh, 2.5);
+  });
+  GA.bindToggle('tCF', /[#&]cf=1/.test(location.hash), v => { cfOn = v; });
+  function applySub() {
+    document.querySelectorAll('[data-sub]').forEach(b => b.classList.toggle('sel', b.dataset.sub === sub));
+    drawEnergy();
+  }
+  function applyLamp() {
+    const L = LAMPS[lamp];
+    document.querySelectorAll('[data-lamp]').forEach(b => b.classList.toggle('sel', b.dataset.lamp === lamp));
+    // цвет разряда = цвет основной линии лампы (как у вылетающих фотонов)
+    lampColor.setHex(L.lines[0].c); lampGlow.material.color.setHex(L.lines[0].c); lampLight.color.setHex(L.lines[0].c);
+    setLabel(lbWin, 'Окно лампы (' + L.win + ')');
+    setLabel(lbLamp, 'УФ-лампа (' + L.gas + ')');
+    el('phE').textContent = L.lines.map(l => fmt(l.e, 1)).join(' и ');
+    el('lgPh1t').textContent = 'УФ-фотон ' + fmt(L.lines[0].e, 1) + ' эВ';
+    el('lgPh2t').textContent = 'УФ-фотон ' + fmt(L.lines[1].e, 1) + ' эВ';
+    for (const [i, id] of [[0, 'lgPh1'], [1, 'lgPh2']]) {
+      const c = '#' + new THREE.Color(L.lines[i].c).getHexString();
+      el(id).style.background = c; el(id).style.boxShadow = '0 0 8px ' + c;
+    }
+    drawEnergy();
+  }
+  document.querySelectorAll('[data-sub]').forEach(b => b.addEventListener('click', () => {
+    sub = b.dataset.sub; applySub();
+  }));
+  document.querySelectorAll('[data-lamp]').forEach(b => b.addEventListener('click', () => {
+    lamp = b.dataset.lamp; applyLamp();
+  }));
+  applySub(); applyLamp();
+  const bPause = el('bPause');
+  bPause.addEventListener('click', () => {
+    stage.paused = !stage.paused;
+    bPause.textContent = stage.paused ? '▶ Продолжить' : '⏸ Пауза';
+  });
+  const VIEWS = [
+    [new V3(-5.0, 2.4, 6.6), new V3(-0.2, -0.45, 0)],
+    [new V3(0.1, -0.3, 8.2), new V3(0.1, -0.5, 0)],
+    [new V3(-3.1, 1.0, 4.7), new V3(-0.5, -0.1, 0)]
+  ];
+  const hv = /view=([0-9])/.exec(location.hash);
+  if (hv) { stage.camera.position.copy(VIEWS[+hv[1]][0]); stage.controls.target.copy(VIEWS[+hv[1]][1]); }
+  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+    const v = VIEWS[+b.dataset.view];
+    GA.flyTo(stage, v[0], v[1]);
+  }));
+})();
+</script>
+</body>
+</html>

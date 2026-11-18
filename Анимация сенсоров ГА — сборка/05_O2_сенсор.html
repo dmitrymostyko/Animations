@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Гальванический сенсор O₂ — анимация принципа работы</title>
+<link rel="stylesheet" href="common/style.css">
+<style>
+  #readout .top { display: flex; gap: 8px; align-items: flex-start; }
+  #readout .top .vals { flex: 1; min-width: 0; }
+  #readout .small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+  #readout .small b { color: #fff; font-weight: 500; }
+  #readout .warn { color: #ffb070; font-size: 12px; min-height: 16px; margin: 3px 0; }
+  #controls .row output { width: auto; white-space: nowrap; }
+  #controls button.sel { background: rgba(255,106,61,.22); border-color: rgba(255,106,61,.6); color: #fff; }
+  #cell { width: 150px; height: 128px; flex: none; }
+  #cell text { font: 9px "Segoe UI", sans-serif; fill: #9fb0c6; }
+  #cell .w { stroke: #6f7f95; stroke-width: 1.4; fill: none; }
+  #cell .flow { stroke: #5aa8ff; stroke-width: 1.8; fill: none; stroke-dasharray: 3 5; }
+  #res { height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; margin: 3px 0 2px; }
+  #resBar { height: 100%; width: 100%; background: linear-gradient(90deg, #d9a441, #7d8796); }
+  #info .src { font-size: 11.5px; color: var(--muted); padding-left: 16px; margin: 4px 0 0; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+
+<div class="title">
+  <a href="index.html">← все сенсоры</a>
+  <h1>Гальванический сенсор кислорода</h1>
+  <div class="sub">Контроль содержания O₂ в воздухе · OX</div>
+</div>
+
+<div id="mols" class="panel">
+  <h3>Обозначения</h3>
+  <div class="m"><span class="dot" style="background:rgba(79,180,255,.5);border:1px solid rgba(79,180,255,.75)"></span>O₂ — кислород</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 50% 50%,rgba(79,180,255,.75) 0 52%,rgba(160,168,176,.55) 54%)"></span>H₂O — вода электролита</div>
+  <div class="m"><span class="dot" style="background:linear-gradient(90deg,rgba(90,170,255,.9) 0 55%,rgba(110,160,220,.75) 55%);box-shadow:0 0 6px rgba(80,160,255,.8);color:#fff;font:bold 11px/13px sans-serif;text-align:center;text-shadow:0 0 2px #000">−</span>OH⁻ — гидроксид-ион</div>
+  <div class="m"><span class="dot" style="background:#3d8bff;color:#fff;font:bold 11px/13px sans-serif;text-align:center">−</span>e⁻ — электрон</div>
+  <div class="m"><span class="dot" style="background:#7d8796"></span>Pb — свинец анода</div>
+  <div class="m"><span class="dot" style="background:#d9a441"></span>PbO — оксид свинца</div>
+  <div class="m"><span class="dot" style="background:rgba(207,216,230,.08);border:1px solid rgba(207,216,230,.18);box-shadow:none"></span>прочие молекулы воздуха</div>
+</div>
+
+<div id="info" class="panel">
+  <h3>Принцип работы</h3>
+  <p>Сенсор устроен как <b>металл-воздушный элемент питания</b>: кислород восстанавливается на катоде, свинцовый анод окисляется. Ячейка сама вырабатывает ток, внешнее питание ей не нужно.</p>
+  <ol>
+    <li>Кислород поступает через <b>капилляр</b> — диффузионный барьер. Он ограничивает поток O₂ так, что катод успевает восстановить каждую дошедшую молекулу. Поэтому ток задаётся потоком через капилляр и пропорционален концентрации кислорода снаружи.</li>
+    <li><b>Катод</b> — газодиффузионный электрод: катализатор (например, золото) на пористой PTFE-мембране. На нём кислород восстанавливается до гидроксид-ионов:<div class="reaction">O₂ + 2H₂O + 4e⁻ → 4OH⁻</div></li>
+    <li>Ионы OH⁻ идут через водный электролит к <b>свинцовому аноду</b>. Там свинец окисляется и отдаёт электроны во внешнюю цепь:<div class="reaction">2Pb + 4OH⁻ → 2PbO + 2H₂O + 4e⁻</div>Суммарно идёт реакция <b>O₂ + 2Pb → 2PbO</b>. Вода и электролит не расходуются, расходуется свинец.</li>
+    <li>Электроны идут от анода к катоду через <b>нагрузочный резистор</b>. По падению напряжения на нём измеряют ток. Сенсор имеет всего два вывода. В воздухе ток около 100 мкА (у Alphasense O2-A2 — 80–120 мкА), в азоте он близок к нулю.</li>
+    <li><b>Капилляр или мембрана.</b> Через капилляр газ проходит диффузией в газовой фазе. Сигнал капиллярного сенсора пропорционален <b>объёмной доле</b> O₂ и почти не зависит от давления: у O2-A2 меньше 0,1 % изменения сигнала на 1 % изменения давления. Такие сенсоры — основной тип в газоанализаторах для безопасности. Сенсор с <b>мембраной</b> (раствор-диффузия через плёнку) измеряет <b>парциальное давление</b> O₂: его показание меняется с давлением и сильнее зависит от температуры.</li>
+    <li>Для дыхания важно парциальное давление O₂. На высоте объёмная доля остаётся 20,9 %, а парциальное давление падает. Капиллярный сенсор при этом покажет «норму». Это видно, если уменьшить давление ползунком.</li>
+    <li><b>Срок службы</b> заканчивается, когда свинец анода окислен: сенсор непрерывно работает в воздухе, где 20,9 % O₂, и расходует анод. Обычно это около двух лет (у O2-A2 — 24 месяца до снижения сигнала на 15 %), у моделей с увеличенным анодом больше. Изношенный сенсор даёт заниженный сигнал. Прибор покажет недостаток кислорода, то есть отказ проявится в безопасную сторону. Существуют и бессвинцовые сенсоры кислорода.</li>
+  </ol>
+  <p><b>Ограничения</b></p>
+  <ul style="padding-left:18px;margin:4px 0 8px">
+    <li>Резкие перепады давления вызывают кратковременный поток газа через капилляр и выброс сигнала.</li>
+    <li>Сенсоры со щелочным электролитом не рассчитаны на длительную работу при высоком содержании CO₂: City Technology указывает предел около 25 %.</li>
+    <li>Температурная зависимость невелика, но её компенсируют в схеме прибора.</li>
+  </ul>
+  <p class="note">Условности анимации. Капилляр и слои сильно увеличены, скорости изменены для наглядности. Режим «Ускоренное старение»: одна секунда — месяц работы в воздухе. Влияние давления и износа анода задано качественной моделью по данным производителей.</p>
+  <p style="margin-bottom:2px"><b>Источники</b></p>
+  <ul class="src">
+    <li>Alphasense, O2-A2 Oxygen Sensor (технические данные) и бессвинцовая модель O2-A2-GLF</li>
+    <li>City Technology (Honeywell), CiTiceL 4OXV; патент US 4324632 о диффузионных барьерах</li>
+    <li>AIHA, The Chemistry of Oxygen Sensors (The Synergist, 2016)</li>
+    <li>Figaro — сравнение сенсоров O₂ с мембраной и с капилляром</li>
+  </ul>
+</div>
+
+<div id="controls" class="panel">
+  <h3>Управление</h3>
+  <div class="row"><label for="o2">O₂ в воздухе</label><output for="o2"></output></div>
+  <input type="range" id="o2" min="0" max="25" step="0.1" value="20.9">
+  <div class="row"><label for="pr">Атмосферное давление</label><output for="pr"></output></div>
+  <input type="range" id="pr" min="50" max="110" step="0.5" value="101.5">
+  <div class="row"><label for="speed">Скорость анимации</label><output for="speed"></output></div>
+  <input type="range" id="speed" min="0.1" max="1.5" step="0.05" value="0.8">
+  <div class="btns sys">
+    <button id="bPause">⏸ Пауза</button>
+    <button class="toggle" id="tLabels">Подписи</button>
+    <button class="toggle" id="tAir">Молекулы воздуха</button>
+  </div>
+  <div class="btns">
+    <button data-bar="cap">Капилляр</button>
+    <button data-bar="mem">Мембрана</button>
+    <button class="toggle" id="tAge">Ускоренное старение</button>
+    <button id="bNew">Новый сенсор</button>
+  </div>
+  <div class="btns">
+    <button data-view="0">Общий вид</button>
+    <button data-view="1">Сбоку</button>
+    <button data-view="2">Электроды</button>
+  </div>
+</div>
+
+<div id="readout" class="panel">
+  <h3>Показание газоанализатора</h3>
+  <div class="top">
+    <div class="vals">
+      <div class="big"><span id="rd">20,9</span> <small>% об.д. O₂</small></div>
+      <div class="warn" id="warn"></div>
+      <div class="small">Фактически: <b id="act">20,9</b> % об.д. · pO₂: <b id="po2">21,2</b> кПа<br>
+        Ток: <b id="cur">100</b> мкА · на 47 Ом: <b id="uout">4,7</b> мВ<br>
+        Давление: <b id="prs">101,3</b> кПа (≈ <span id="alt">0</span> м)<br>
+        Ресурс анода: <b id="resv">100</b> % · работа: <b id="age">0</b> мес.</div>
+      <div id="res"><div id="resBar"></div></div>
+    </div>
+    <svg id="cell" viewBox="0 0 150 128">
+      <rect x="6" y="14" width="44" height="100" rx="5" fill="#1a2433" stroke="#6f7f95"/>
+      <line x1="12" y1="26" x2="44" y2="26" stroke="#d9c070" stroke-width="3"/>
+      <rect id="anodeSvg" x="14" y="44" width="28" height="60" fill="#7d8796"/>
+      <text x="9" y="22">катод</text><text x="15" y="78" style="fill:#fff">Pb</text>
+      <path class="w" d="M44 26 H96 V44 M96 84 V104 H42"/>
+      <path class="flow" id="fl" d="M42 104 H96 V84 M96 44 V26 H44"/>
+      <rect x="90" y="44" width="12" height="40" fill="#141b26" stroke="#9fb0c6" stroke-width="1.3"/>
+      <text x="106" y="62">R</text><text x="106" y="72">47 Ом</text>
+      <circle cx="128" cy="64" r="11" fill="#141b26" stroke="#9fb0c6" stroke-width="1.3"/>
+      <text x="124" y="67">U</text>
+      <path class="w" d="M96 40 H128 V53 M128 75 V88 H96"/>
+    </svg>
+  </div>
+  <div class="charts">
+    <div class="chb">
+      <div class="chart-t">Ток ячейки, мкА</div>
+      <canvas class="ch" id="chartS"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#5aa8ff"></i>ток</span></span></div>
+    </div>
+    <div class="chb">
+      <div class="chart-t">Содержание O₂, % об.д.</div>
+      <canvas class="ch" id="chartC"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#8a96a8"></i>фактически</span><span><i style="background:#4fd18b"></i>показание</span></span></div>
+    </div>
+  </div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+<script src="assets/logo.js"></script>
+<script src="common/core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const V3 = THREE.Vector3;
+  const lerp = THREE.MathUtils.lerp;
+  const el = id => document.getElementById(id);
+  const fmt = (v, d = 1) => v.toFixed(d).replace('.', ',');
+  const P0 = 101.325;
+
+  /* ===================== Параметры из адреса ===================== */
+  let anodeF = 1;
+  let o2Set = 20.9, pSet = 101.5, barrier = 'cap', showAir = true, ageOn = false;
+  {
+    const h = location.hash;
+    const g = (k) => { const m = new RegExp('[#&]' + k + '=([0-9.]+)').exec(h); return m ? +m[1] : null; };
+    if (g('o2') !== null) { o2Set = g('o2'); el('o2').value = o2Set; }
+    if (g('pr') !== null) { pSet = g('pr'); el('pr').value = pSet; }
+    if (/[#&]bar=mem/.test(h)) barrier = 'mem';
+  }
+
+  /* ===================== Сцена ===================== */
+  const stage = GA.createStage({ cameraPos: new V3(-5.0, 2.4, 6.6), target: new V3(-0.2, -0.45, 0), floorY: -3.0 });
+  const scene = stage.scene;
+  GA.labels = new GA.Labels();
+  GA.addLogo(stage, { maxPx: 760, top: 14, depth: 0.02, layers: 48, spinEvery: 20, spinTime: 2.5 });
+
+  const R = 1.2, RIN = R - 0.15;
+  const X0 = -1.6, CAPL = 0.16, XCAP0 = X0 - CAPL;
+  const RCAP = 0.32, RMEM = 0.62;            // капилляр (сильно увеличен) / окно мембранного сенсора
+  const XK = -1.12;                          // плоскость катализатора катода
+  const XA0 = -0.5, XA1 = 1.2, RA = 0.62;    // свинцовый анод
+  const X1 = 1.45;
+  const BOX = new V3(0.0, -2.35, 0);
+
+  /* ---------- Корпус ---------- */
+  const innerMetal = new THREE.MeshStandardMaterial({ color: 0x4f5864, metalness: 0.7, roughness: 0.45 });
+  const shellGeo = new THREE.CylinderGeometry(R, R, X1 - XCAP0, 72, 1, true);
+  const shellInner = new THREE.Mesh(shellGeo, Object.assign(innerMetal.clone(), { side: THREE.BackSide }));
+  shellInner.rotation.z = Math.PI / 2; shellInner.position.x = (X1 + XCAP0) / 2;
+  scene.add(shellInner);
+  const glass = GA.mat.glassShell(); glass.side = THREE.FrontSide;
+  const shell = new THREE.Mesh(shellGeo, glass);
+  shell.rotation.z = Math.PI / 2; shell.position.x = (X1 + XCAP0) / 2; shell.renderOrder = 10;
+  scene.add(shell);
+  const metal = GA.mat.metal();
+  for (const x of [XCAP0, X1]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.05, 12, 96), metal);
+    ring.rotation.y = Math.PI / 2; ring.position.x = x;
+    scene.add(ring);
+  }
+  {
+    const pts = [];
+    for (let k = 0; k < 12; k++) {
+      const a = k / 12 * Math.PI * 2;
+      pts.push(XCAP0, Math.cos(a) * R, Math.sin(a) * R, X1, Math.cos(a) * R, Math.sin(a) * R);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x9fb4cc, transparent: true, opacity: 0.18 })));
+    const capGeo = new THREE.CircleGeometry(R, 72);
+    const capIn = new THREE.Mesh(capGeo, innerMetal);
+    capIn.position.x = X1; capIn.rotation.y = -Math.PI / 2;
+    scene.add(capIn);
+    const capOut = new THREE.Mesh(capGeo, new THREE.MeshStandardMaterial({ color: 0x9aa6b4, metalness: 0.85, roughness: 0.35, transparent: true, opacity: 0.25, depthWrite: false }));
+    capOut.position.x = X1 + 0.002; capOut.rotation.y = Math.PI / 2; capOut.renderOrder = 10;
+    scene.add(capOut);
+  }
+  // передняя крышка: вариант с капилляром и вариант с широким окном под мембраной
+  const capMat = new THREE.MeshStandardMaterial({ color: 0x9aa6b4, metalness: 0.6, roughness: 0.4, transparent: true, opacity: 0.32, side: THREE.DoubleSide, depthWrite: false });
+  function frontCap(rHole) {
+    const g = new THREE.Group();
+    for (const x of [XCAP0, X0]) {
+      const ring = new THREE.Mesh(new THREE.RingGeometry(rHole, R, 72), capMat);
+      ring.position.x = x; ring.rotation.y = Math.PI / 2; ring.renderOrder = 11;
+      g.add(ring);
+    }
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(rHole, rHole, CAPL, 40, 1, true),
+      new THREE.MeshStandardMaterial({ color: 0xc9d1db, metalness: 0.85, roughness: 0.3, side: THREE.DoubleSide }));
+    tube.rotation.z = Math.PI / 2; tube.position.x = X0 - CAPL / 2;
+    g.add(tube);
+    scene.add(g);
+    return g;
+  }
+  const capGrp = frontCap(RCAP);
+  const memGrp = frontCap(RMEM);
+  const memDisc = new THREE.Mesh(new THREE.CircleGeometry(RMEM, 48), new THREE.MeshStandardMaterial({
+    color: 0xdfe9f2, roughness: 0.35, alphaMap: GA.meshTexture(70), transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false
+  }));
+  memDisc.position.x = XCAP0 - 0.005; memDisc.rotation.y = -Math.PI / 2; memDisc.renderOrder = 13;
+  memGrp.add(memDisc);
+
+  /* ---------- Слои ячейки ---------- */
+  function grainTexture(base, dark, n) {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d');
+    g.fillStyle = base; g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < n; i++) {
+      g.fillStyle = dark; g.globalAlpha = 0.25 + Math.random() * 0.6;
+      g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 0.6 + Math.random() * 2.2, 0, 7); g.fill();
+    }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
+  function slab(x0, x1, r, mat, order) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, x1 - x0, 72), mat);
+    m.rotation.z = Math.PI / 2; m.position.x = (x0 + x1) / 2; m.renderOrder = order || 4;
+    scene.add(m);
+    return m;
+  }
+  // катод: PTFE-мембрана (к газу) + слой золотого катализатора (к электролиту)
+  slab(XK - 0.07, XK - 0.015, RIN, new THREE.MeshStandardMaterial({ color: 0xf3f5f7, roughness: 0.9, transparent: true, opacity: 0.45, depthWrite: false }), 6);
+  const cathode = slab(XK - 0.015, XK + 0.015, RIN, new THREE.MeshStandardMaterial({
+    map: grainTexture('#b8963c', '#5a4410', 1800), color: 0xd8c27a, roughness: 0.55, metalness: 0.6, transparent: true, opacity: 0.85, depthWrite: false
+  }), 6);
+  // электролит
+  slab(XK + 0.016, X1 - 0.01, RIN - 0.005, new THREE.MeshStandardMaterial({
+    color: 0x7fb6ff, roughness: 0.1, metalness: 0, transparent: true, opacity: 0.1, depthWrite: false
+  }), 3);
+  // свинцовый анод: цвет смещается к PbO по мере износа
+  const anodeMat = new THREE.MeshStandardMaterial({ color: 0x7d8796, metalness: 0.75, roughness: 0.45, map: grainTexture('#9aa3ad', '#5e6670', 1400) });
+  const anode = new THREE.Mesh(new THREE.CylinderGeometry(RA, RA, XA1 - XA0, 64), anodeMat);
+  anode.rotation.z = Math.PI / 2; anode.position.x = (XA0 + XA1) / 2;
+  scene.add(anode);
+  // пятна PbO на поверхности анода (по мере износа)
+  const pboMat = new THREE.MeshStandardMaterial({ color: 0xb87818, roughness: 0.95, metalness: 0, envMapIntensity: 0.25 });
+  const pboGeo = new THREE.SphereGeometry(1, 14, 8);
+  const pboSpots = [];
+  for (let i = 0; i < 140; i++) {
+    const m = new THREE.Mesh(pboGeo, pboMat);
+    const s = 0.06 + Math.random() * 0.07;
+    if (i % 3 === 0) {          // торец анода
+      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (RA - 0.05);
+      m.position.set(XA0, Math.cos(a) * r, Math.sin(a) * r);
+      m.scale.set(0.3 * s, s, s);
+    } else {                    // боковая поверхность
+      const a = Math.random() * Math.PI * 2;
+      m.position.set(lerp(XA0 + 0.05, XA1 - 0.05, Math.random()), Math.cos(a) * RA, Math.sin(a) * RA);
+      m.scale.set(s, s, s);
+      m.scale.y = m.scale.z = s; m.lookAt(new V3(m.position.x, 0, 0)); m.scale.z = 0.3 * s;
+    }
+    m.visible = false;
+    scene.add(m);
+    pboSpots.push(m);
+  }
+
+  /* ---------- Выводы, резистор ---------- */
+  const tabMat = GA.mat.metal(0xd8dde3), wireMat = GA.mat.gold();
+  const YT = -1.55, YB = BOX.y + 0.3;
+  function lead(x, yTop) {
+    const tab = new THREE.Mesh(new THREE.BoxGeometry(0.04, YT - yTop, 0.12), tabMat);
+    tab.position.set(x, (yTop + YT) / 2, 0); scene.add(tab);
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, YT - YB, 12), wireMat);
+    w.position.set(x, (YT + YB) / 2, 0); scene.add(w);
+  }
+  const XLA = 0.35;                           // вывод анода
+  lead(XK, -RIN + 0.02); lead(XLA, -RA);
+  const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 0.8), new THREE.MeshStandardMaterial({ color: 0x26303d, metalness: 0.3, roughness: 0.5, transparent: true, opacity: 0.88 }));
+  box.position.copy(BOX); scene.add(box);
+  // резистор на передней стенке блока
+  const resistor = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.6, 20), new THREE.MeshStandardMaterial({ color: 0xc8b48a, roughness: 0.6 }));
+  resistor.rotation.z = Math.PI / 2; resistor.position.set(BOX.x - 0.35, BOX.y, 0.45); scene.add(resistor);
+  for (const [dx, c] of [[-0.15, 0x8a4b20], [-0.05, 0xffd400], [0.05, 0x5b3a8a], [0.15, 0xd4af37]]) {
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.035, 20), new THREE.MeshStandardMaterial({ color: c, roughness: 0.5 }));
+    band.rotation.z = Math.PI / 2; band.position.set(resistor.position.x + dx, BOX.y, 0.45); scene.add(band);
+  }
+  const boxLed = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.22), new THREE.MeshBasicMaterial({ color: 0x0f3a24 }));
+  boxLed.position.set(BOX.x + 0.5, BOX.y, 0.401); scene.add(boxLed);
+
+  /* ---------- Подписи ---------- */
+  GA.labels.setAvoid(new THREE.Box3(new V3(XCAP0 - 0.1, BOX.y - 0.35, -R - 0.1), new V3(X1 + 0.1, R + 0.1, R + 0.1)));
+  const lbBar = GA.labels.add('Капилляр — диффузионный барьер', new V3(X0 - CAPL / 2, RCAP, 0), { side: 'top' });
+  GA.labels.add('Катод (катализатор на PTFE)', new V3(XK, RIN - 0.05, 0), { side: 'top' });
+  GA.labels.add('Электролит', new V3(-0.8, RIN - 0.1, 0.3), { side: 'top' });
+  GA.labels.add('Свинцовый анод', new V3(0.6, RA, 0), { side: 'top' });
+  GA.labels.add('Нагрузочный резистор', new V3(resistor.position.x, BOX.y - 0.1, 0.5), { side: 'bottom' });
+
+  /* ===================== Газ ===================== */
+  function pickType() { return Math.random() < 0.55 * o2Set / 20.9 * 0.5 ? 'O2' : 'AIR'; }
+  const rHole = () => barrier === 'cap' ? RCAP : RMEM;
+  function confine(p, v, m) {
+    const r2 = p.y * p.y + p.z * p.z;
+    const z = m.zone || 'out', rh = rHole();
+    if (z === 'out') {
+      if (p.x > XCAP0) {
+        // мембрана пропускает только часть ударившихся о неё молекул (растворение и диффузия в плёнке)
+        const pass = barrier === 'cap' || Math.random() < 0.18;
+        if (r2 < rh * rh && pass) { m.zone = 'cap'; m.inside = true; }
+        else { p.x = XCAP0 - 0.001; v.x = -Math.abs(v.x); }
+      }
+      return true;
+    }
+    if (z === 'cap') {
+      if (p.x < XCAP0) { m.zone = 'out'; m.inside = false; return true; }
+      if (p.x > X0) { m.zone = 'head'; return true; }
+      if (r2 > rh * rh) {
+        const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+        if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+        p.y = ny * rh * 0.999; p.z = nz * rh * 0.999;
+      }
+      return true;
+    }
+    if (p.x < X0) {
+      if (r2 < rh * rh) m.zone = 'cap';
+      else { p.x = X0 + 0.001; v.x = Math.abs(v.x); }
+      return true;
+    }
+    const XM = XK - 0.1;
+    if (p.x > XM) {
+      // при изношенном аноде ток не может течь — O2 перестаёт восстанавливаться
+      if (m.type === 'O2' && Math.random() < anodeF) { enterCathode(m); return true; }
+      p.x = XM; v.x = -Math.abs(v.x);
+    }
+    if (r2 > RIN * RIN) {
+      const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+      if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+      p.y = ny * RIN; p.z = nz * RIN;
+    }
+    return true;
+  }
+  const gas = new GA.GasField({
+    scene, count: 280, speed: 2.4, collide: 0.7,
+    box: { xMin: -5.4, xMax: XCAP0, yMin: -1.5, yMax: 1.5, zMin: -1.5, zMax: 1.5 },
+    pickType, confine
+  });
+  for (let i = 0; i < 6; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (RIN - 0.05);
+    const m = gas.spawn('AIR', true, new V3(lerp(X0 + 0.05, XK - 0.15, Math.random()), Math.cos(a) * r, Math.sin(a) * r));
+    m.inside = true; m.zone = 'head';
+  }
+  function refreshAmbient(dt) {
+    for (const m of gas.list) {
+      if (m.dead || m.inside || m.frozen) continue;
+      const w = THREE.MathUtils.clamp((XCAP0 - 0.4 - m.obj.position.x) / 2.5, 0, 1);
+      if (Math.random() < dt * 1.2 * w) {
+        const t = pickType();
+        if (t !== m.type) { const nm = gas.spawn(t, true, m.obj.position); nm.vel.copy(m.vel); gas.remove(m); }
+      }
+    }
+  }
+
+  /* ===================== Электролит: вода ===================== */
+  const EX0 = XK + 0.06, EX1 = X1 - 0.08, ER = RIN - 0.1;
+  function confineElec(p, v) {
+    if (p.x < EX0) { p.x = EX0; v.x = Math.abs(v.x); }
+    if (p.x > EX1) { p.x = EX1; v.x = -Math.abs(v.x); }
+    const r2 = p.y * p.y + p.z * p.z, r = Math.sqrt(r2);
+    if (r > ER) {
+      const ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+      if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+      p.y = ny * ER; p.z = nz * ER;
+    }
+    // анод — твёрдое тело
+    if (p.x > XA0 - 0.08 && r < RA + 0.08) {
+      if (p.x < XA0 + 0.05) { p.x = XA0 - 0.08; v.x = -Math.abs(v.x); }
+      else if (r > 1e-3) { p.y *= (RA + 0.08) / r; p.z *= (RA + 0.08) / r; const ny = p.y / (RA + 0.08), nz = p.z / (RA + 0.08), vn = v.y * ny + v.z * nz; if (vn < 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; } }
+    }
+    return true;
+  }
+  const water = new GA.GasField({ scene, count: 0, speed: 0.3, collide: 3, box: { xMin: -99, xMax: 99, yMin: -99, yMax: 99, zMin: -99, zMax: 99 }, pickType: () => 'H2O', confine: confineElec });
+  function randInElec() {
+    for (;;) {
+      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * ER;
+      const p = new V3(lerp(EX0, EX1, Math.random()), Math.cos(a) * r, Math.sin(a) * r);
+      if (!(p.x > XA0 - 0.1 && r < RA + 0.1)) return p;
+    }
+  }
+  function addWater(pos) { const m = water.spawn('H2O', true, pos); m.inside = true; return m; }
+  for (let i = 0; i < 24; i++) addWater(randInElec());
+
+  /* ===================== Вспышки, заряды ===================== */
+  const flashes = [];
+  for (let i = 0; i < 50; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GA.glowTexture(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    s.visible = false; s.renderOrder = 21; scene.add(s);
+    flashes.push({ s, life: 0, max: 1, size: 0.5 });
+  }
+  function flash(pos, color, size = 0.5, life = 0.5) {
+    const f = flashes.find(f => f.life <= 0) || flashes[0];
+    f.s.position.copy(pos); f.s.material.color.setHex(color);
+    f.life = f.max = life; f.size = size; f.s.visible = true;
+  }
+  function stepFlashes(dt) {
+    for (const f of flashes) {
+      if (f.life <= 0) continue;
+      f.life -= dt;
+      const k = Math.max(0, f.life / f.max);
+      f.s.material.opacity = k;
+      f.s.scale.setScalar(f.size * (1.5 - 0.7 * k));
+      if (f.life <= 0) f.s.visible = false;
+    }
+  }
+  function signTex(sign, bg) {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d');
+    if (bg) {
+      const gr = g.createRadialGradient(26, 24, 4, 32, 32, 30);
+      gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.25, bg); gr.addColorStop(1, bg);
+      g.fillStyle = gr; g.beginPath(); g.arc(32, 32, 29, 0, 7); g.fill();
+    }
+    g.lineCap = 'round';
+    for (const [w, col] of (bg ? [[7, '#ffffff']] : [[13, 'rgba(0,0,0,.55)'], [7, '#ffffff']])) {
+      g.strokeStyle = col; g.lineWidth = w;
+      g.beginPath(); g.moveTo(16, 32); g.lineTo(48, 32);
+      if (sign > 0) { g.moveTo(32, 16); g.lineTo(32, 48); }
+      g.stroke();
+    }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
+  const minusMat = new THREE.SpriteMaterial({ map: signTex(-1), transparent: true, depthWrite: false, depthTest: false });
+  const eMat = new THREE.SpriteMaterial({ map: signTex(-1, '#3d8bff'), depthWrite: false });
+
+  const pops = {};
+  function popOnce(key, every, text, anchor, ttl = 2.2) {
+    if (stage.time - (pops[key] || -99) < every) return;
+    pops[key] = stage.time;
+    GA.labels.pop(text, anchor, ttl);
+  }
+  const tweens = [];
+  function tween(obj, to, dur, done) { tweens.push({ obj, from: obj.position.clone(), to: to.clone(), t: 0, dur, done }); }
+  function stepTweens(dt) {
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      const tw = tweens[i];
+      tw.t += dt;
+      const k = Math.min(1, tw.t / tw.dur), e = k * k * (3 - 2 * k);
+      tw.obj.position.lerpVectors(tw.from, tw.to, e);
+      if (k >= 1) { tweens.splice(i, 1); tw.done && tw.done(); }
+    }
+  }
+
+  /* ===================== Ионы OH⁻ и электроны ===================== */
+  const ions = [];
+  function spawnOH(pos) {
+    const obj = GA.makeMolecule('OH');
+    GA.setCharge(obj, '-');                  // отрицательный ион — голубоватый оттенок
+    obj.scale.setScalar(GA.molScale * 1.35);  // ион чуть крупнее, чтобы был заметен в электролите
+    const minus = new THREE.Sprite(minusMat); minus.scale.setScalar(0.14 * GA.molK / (GA.molScale * 1.35)); minus.renderOrder = 22;
+    obj.add(minus);
+    obj.position.copy(pos);
+    obj.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
+    scene.add(obj);
+    ions.push({ obj, v: new V3(0.32, 0, 0) });
+  }
+  const electrons = [];
+  function spawnE(pts, delay) {
+    const s = new THREE.Sprite(eMat); s.scale.setScalar(0.11 * GA.molK); s.renderOrder = 16;
+    s.position.copy(pts[0]); s.visible = false; scene.add(s);
+    let len = 0; const segs = [];
+    for (let i = 1; i < pts.length; i++) { const l = pts[i].distanceTo(pts[i - 1]); segs.push(l); len += l; }
+    electrons.push({ s, pts, segs, len, d: 0, delay });
+  }
+  // путь электрона: анод → вывод → резистор → вывод катода → катод
+  function ePath(from) {
+    const toK = new V3(XK, lerp(-0.5, 0.5, Math.random()), lerp(-0.5, 0.5, Math.random()));
+    return [from.clone(), new V3(XLA, -RA, 0), new V3(XLA, YB, 0), new V3(XLA, BOX.y, 0.45),
+      new V3(resistor.position.x - 0.3, BOX.y, 0.45), new V3(XK, BOX.y, 0), new V3(XK, YB, 0), new V3(XK, -RIN + 0.02, 0), toK];
+  }
+  let eDemand = 0;     // электроны, нужные катоду (на O2 — 4)
+  function stepCharges(dt) {
+    for (let i = ions.length - 1; i >= 0; i--) {
+      const ion = ions[i], p = ion.obj.position;
+      ion.v.y += (Math.random() - 0.5) * dt * 4; ion.v.z += (Math.random() - 0.5) * dt * 4;
+      ion.v.y *= Math.exp(-2 * dt); ion.v.z *= Math.exp(-2 * dt);
+      ion.v.x = GA.approach(ion.v.x, 0.32, 2, dt);
+      p.addScaledVector(ion.v, dt);
+      ion.obj.rotation.x += dt; ion.obj.rotation.y += dt * 0.7;
+      const r = Math.hypot(p.y, p.z);
+      if (r > RA - 0.05) { p.y *= (RA - 0.05) / r; p.z *= (RA - 0.05) / r; }
+      if (p.x >= XA0 - 0.06) { scene.remove(ion.obj); ions.splice(i, 1); ohArrived(p); }
+    }
+    for (let i = electrons.length - 1; i >= 0; i--) {
+      const e = electrons[i];
+      if (e.delay > 0) { e.delay -= dt; continue; }
+      e.d += dt * 1.7;
+      if (e.d >= e.len) { flash(e.pts[e.pts.length - 1], 0x5aa8ff, 0.18, 0.25); scene.remove(e.s); electrons.splice(i, 1); continue; }
+      let d = e.d, k = 0;
+      while (d > e.segs[k]) { d -= e.segs[k]; k++; }
+      e.s.position.lerpVectors(e.pts[k], e.pts[k + 1], d / e.segs[k]);
+      e.s.visible = true;
+    }
+  }
+
+  /* ===================== Реакции ===================== */
+  const stats = { o2: 0, pbo: 0 };
+  function enterCathode(m) {
+    m.frozen = true;
+    const p = m.obj.position;
+    const site = new V3(XK, p.y, p.z);
+    const r = Math.hypot(site.y, site.z);
+    if (r > RIN - 0.15) { site.y *= (RIN - 0.15) / r; site.z *= (RIN - 0.15) / r; }
+    // две молекулы воды электролита участвуют в реакции
+    const ws = water.list.filter(w => !w.dead && !w.frozen)
+      .sort((a, b) => a.obj.position.distanceToSquared(site) - b.obj.position.distanceToSquared(site)).slice(0, 2);
+    ws.forEach((w, i) => { w.frozen = true; tween(w.obj, site.clone().add(new V3(0.08, i ? 0.06 : -0.06, 0)), 0.45, () => water.remove(w)); });
+    tween(m.obj, site.clone().add(new V3(-0.03, 0, 0)), 0.45, () => reactCathode(m, site));
+  }
+  function reactCathode(m, site) {
+    gas.remove(m);
+    stats.o2++;
+    flash(site, 0x9fdcff, 0.6, 0.45);
+    popOnce('k', 5, 'O₂ + 2H₂O + 4e⁻ → 4OH⁻', site.clone());
+    for (let i = 0; i < 4; i++) spawnOH(site.clone().add(new V3(0.07 + Math.random() * 0.06, (Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2)));
+    gas.spawn(null, false);
+  }
+  // на аноде: Pb + 2OH⁻ → PbO + H2O + 2e⁻
+  let ohCount = 0;
+  function ohArrived(p) {
+    ohCount++;
+    if (ohCount < 2) return;
+    ohCount -= 2;
+    const site = new V3(XA0, p.y, p.z);
+    stats.pbo++;
+    flash(site, 0xffd27a, 0.45, 0.5);
+    popOnce('a', 5, 'Pb + 2OH⁻ → PbO + H₂O + 2e⁻', site.clone());
+    // свежий налёт PbO — временное пятно
+    const spot = new THREE.Mesh(pboGeo, pboMat);
+    spot.position.copy(site).add(new V3(-0.01, 0, 0)); spot.scale.set(0.02, 0.09, 0.09);
+    scene.add(spot); fresh.push({ m: spot, t: 4 });
+    const w = addWater(site.clone().add(new V3(-0.12, 0, 0))); w.vel.set(-0.3, 0, 0);
+    const ws = water.list.filter(x => !x.dead && !x.frozen);
+    if (ws.length > 30) water.remove(ws[Math.floor(Math.random() * ws.length)]);
+    for (let i = 0; i < 2; i++) spawnE(ePath(site), i * 0.15);
+  }
+  const fresh = [];
+  function stepFresh(dt) {
+    for (let i = fresh.length - 1; i >= 0; i--) {
+      fresh[i].t -= dt;
+      if (fresh[i].t <= 0) { scene.remove(fresh[i].m); fresh.splice(i, 1); }
+    }
+  }
+  function stepProducts() { /* продуктов в газовой фазе нет: O2 поглощается полностью */ }
+
+  /* ===================== Модель сигнала ===================== */
+  const I_AIR = 100;            // мкА при 20,9 % об.д. и 101,3 кПа
+  const RL = 47;                // Ом
+  const LIFE = 24;              // мес. непрерывной работы в воздухе
+  let inX = 20.9, inP = 101.5, current = I_AIR, reading = 20.9, resv = 1, ageMonths = 0, dash = 0;
+  // самописец 1 — измеряемый ток ячейки, 2 — пересчитанное содержание O2 (I / I_воздух × 20,9)
+  const chartS = new GA.StripChart(el('chartS'), [
+    { color: '#5aa8ff', data: [] }
+  ], { max: 125, len: 260, period: 0.05, gridLines: [{ v: 100, t: '100 мкА (воздух)' }, { v: 0 }] });
+  const chartC = new GA.StripChart(el('chartC'), [
+    { color: '#8a96a8', data: [] }, { color: '#4fd18b', data: [] }
+  ], { max: 25, len: 260, period: 0.05, gridLines: [{ v: 20.9, t: '20,9 %' }, { v: 0 }] });
+  let uiAcc = 0;
+  const altitude = p => Math.max(0, 44330 * (1 - Math.pow(p / P0, 1 / 5.255)));
+  function stepSignal(dt, dtReal) {
+    inX = GA.approach(inX, o2Set, 1 / 3, dt);
+    inP = GA.approach(inP, pSet, 1 / 1.5, dt);
+    // капилляр: поток ∝ объёмной доле (слабая зависимость от давления); мембрана: ∝ парциальному давлению
+    const pf = barrier === 'cap' ? Math.pow(inP / P0, 0.03) : inP / P0;
+    anodeF = resv > 0.08 ? 1 : Math.max(0, resv / 0.08);
+    const target = I_AIR * (inX / 20.9) * pf * anodeF;
+    current = GA.approach(current, target, 2, dt);
+    reading = current / I_AIR * 20.9;
+    // износ анода — заряд, прошедший через ячейку
+    if (ageOn) {
+      const months = dt * 1.0;           // 1 с анимации = 1 месяц
+      ageMonths += months * (current / I_AIR > 0.01 ? 1 : 0);
+      resv = Math.max(0, resv - months / LIFE * (current / I_AIR));
+    }
+    // вид анода
+    const wear = 1 - resv;
+    const nSpots = Math.round(wear * pboSpots.length);
+    for (let i = 0; i < pboSpots.length; i++) pboSpots[i].visible = i < nSpots;
+    anodeMat.color.setRGB(lerp(0.49, 0.75, wear), lerp(0.53, 0.6, wear), lerp(0.59, 0.32, wear));
+    el('anodeSvg').setAttribute('fill', '#' + anodeMat.color.getHexString());
+    boxLed.material.color.setRGB(0.06, 0.15 + 0.7 * Math.min(1, reading / 21), 0.12);
+    dash -= dtReal * (2 + 30 * Math.min(1, current / I_AIR));
+    el('fl').style.strokeDashoffset = dash.toFixed(1);
+    el('fl').style.opacity = current > 3 ? 1 : 0.15;
+
+    if (!stage.paused) {
+      chartS.push([Math.min(current, 125)], dtReal);
+      chartC.push([Math.min(inX, 25), Math.min(reading, 25)], dtReal);
+    }
+    uiAcc += dtReal;
+    if (uiAcc > 0.15) {
+      uiAcc = 0;
+      el('rd').textContent = fmt(reading);
+      el('act').textContent = fmt(inX);
+      el('po2').textContent = fmt(inX / 100 * inP);
+      el('cur').textContent = current.toFixed(0);
+      el('uout').textContent = fmt(current * 1e-6 * RL * 1000, 2);
+      el('prs').textContent = fmt(inP);
+      el('alt').textContent = (Math.round(altitude(inP) / 50) * 50).toFixed(0);
+      el('resv').textContent = (resv * 100).toFixed(0);
+      el('age').textContent = ageMonths.toFixed(0);
+      el('resBar').style.width = (resv * 100).toFixed(1) + '%';
+      let w = '';
+      if (resv < 0.08) w = '⚠ Свинец анода почти израсходован: сигнал падает, прибор покажет недостаток O₂ — замените сенсор';
+      else if (barrier === 'mem' && Math.abs(inP - P0) > 3) w = '⚠ Мембранный сенсор измеряет парциальное давление: показание ' + fmt(reading) + ' % при фактических ' + fmt(inX) + ' %';
+      else if (barrier === 'cap' && inP < 90) w = 'Капиллярный сенсор показывает объёмную долю (' + fmt(reading) + ' %), но pO₂ снижено до ' + fmt(inX / 100 * inP) + ' кПа — для дыхания важно именно оно';
+      else if (inX < 19) w = '⚠ Пониженное содержание кислорода';
+      else if (inX > 23) w = '⚠ Повышенное содержание кислорода — растёт пожароопасность';
+      el('warn').textContent = w;
+    }
+  }
+
+  /* ===================== Главный цикл ===================== */
+  stage.onFrame((dt, t, dtReal) => {
+    refreshAmbient(dt);
+    gas.step(dt);
+    water.step(dt);
+    stepTweens(dt);
+    if (dt > 0) stepCharges(dt);
+    stepFresh(dt);
+    for (const m of gas.list) if (!m.dead) m.obj.visible = showAir || m.type !== 'AIR';
+    stepFlashes(dt);
+    stepSignal(dt, dtReal);
+  });
+  window.__dbg = () => JSON.stringify(Object.assign({ reading: +reading.toFixed(2), current: +current.toFixed(1), resv: +resv.toFixed(3), ions: ions.length, e: electrons.length, water: water.list.length }, stats));
+
+  /* ===================== Интерфейс ===================== */
+  GA.bindRange('o2', v => fmt(v) + ' % об.д.', v => { o2Set = v; });
+  GA.bindRange('pr', v => fmt(v) + ' кПа', v => { pSet = v; });
+  GA.bindRange('speed', v => '×' + fmt(v, 2), v => { stage.timeScale = v; });
+  GA.bindToggle('tLabels', true, v => GA.labels.setVisible(v));
+  GA.bindToggle('tAir', true, v => { showAir = v; });
+  GA.bindToggle('tAge', /[#&]age=1/.test(location.hash), v => { ageOn = v; });
+  el('bNew').addEventListener('click', () => { resv = 1; ageMonths = 0; });
+  function applyBarrier() {
+    document.querySelectorAll('[data-bar]').forEach(b => b.classList.toggle('sel', b.dataset.bar === barrier));
+    capGrp.visible = barrier === 'cap'; memGrp.visible = barrier === 'mem';
+    lbBar.el.innerHTML = barrier === 'cap' ? 'Капилляр — диффузионный барьер' : 'Мембрана — диффузионный барьер';
+    lbBar.w = 0;
+    lbBar.anchor = new V3(X0 - CAPL / 2, rHole(), 0);
+  }
+  document.querySelectorAll('[data-bar]').forEach(b => b.addEventListener('click', () => { barrier = b.dataset.bar; applyBarrier(); }));
+  applyBarrier();
+  const bPause = el('bPause');
+  bPause.addEventListener('click', () => {
+    stage.paused = !stage.paused;
+    bPause.textContent = stage.paused ? '▶ Продолжить' : '⏸ Пауза';
+  });
+  const VIEWS = [
+    [new V3(-5.0, 2.4, 6.6), new V3(-0.2, -0.45, 0)],
+    [new V3(-0.1, -0.3, 8.2), new V3(-0.1, -0.5, 0)],
+    [new V3(-3.0, 1.0, 4.5), new V3(-0.6, -0.1, 0)]
+  ];
+  const hv = /view=([0-9])/.exec(location.hash);
+  if (hv) { stage.camera.position.copy(VIEWS[+hv[1]][0]); stage.controls.target.copy(VIEWS[+hv[1]][1]); }
+  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+    const v = VIEWS[+b.dataset.view];
+    GA.flyTo(stage, v[0], v[1]);
+  }));
+})();
+</script>
+</body>
+</html>

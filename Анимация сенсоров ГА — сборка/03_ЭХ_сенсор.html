@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Электрохимический сенсор — анимация принципа работы</title>
+<link rel="stylesheet" href="common/style.css">
+<style>
+  #readout { width: 440px; }
+  #readout .top { display: flex; gap: 10px; align-items: flex-start; }
+  #readout .top .vals { flex: 1; }
+  #readout .small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+  #readout .small b { color: #fff; font-weight: 500; }
+  #readout .warn { color: #ffb070; font-size: 12px; min-height: 16px; }
+  #controls .row output { width: auto; white-space: nowrap; }
+  #pstat { width: 200px; height: 122px; flex: none; }
+  #pstat text { font: 9px "Segoe UI", sans-serif; fill: #9fb0c6; }
+  #pstat .w { stroke: #6f7f95; stroke-width: 1.4; fill: none; }
+  #pstat .flow { stroke: #5aa8ff; stroke-width: 1.8; fill: none; stroke-dasharray: 3 5; }
+  #pstat .amp { fill: #141b26; stroke: #9fb0c6; stroke-width: 1.3; }
+  #pstat .off { opacity: .22; }
+  #info .src { font-size: 11.5px; color: var(--muted); padding-left: 16px; margin: 4px 0 0; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+
+<div class="title">
+  <a href="index.html">← все сенсоры</a>
+  <h1>Электрохимический сенсор</h1>
+  <div class="sub">Трёхэлектродная ячейка на угарный газ (CO) · TOX</div>
+</div>
+
+<div id="mols" class="panel">
+  <h3>Обозначения</h3>
+  <div class="m"><span class="dot" style="background:linear-gradient(90deg,#2b2f36 0 50%,rgba(79,180,255,.7) 50%)"></span>CO — угарный газ</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 50% 50%,#2b2f36 0 35%,rgba(79,180,255,.65) 36%)"></span>CO₂ — продукт реакции</div>
+  <div class="m"><span class="dot" style="background:rgba(79,180,255,.5);border:1px solid rgba(79,180,255,.75)"></span>O₂ — кислород</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 50% 50%,rgba(79,180,255,.75) 0 52%,rgba(160,168,176,.55) 54%)"></span>H₂O — вода электролита</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.8) 0 12%,rgba(200,110,100,.7) 38%);border:1px solid rgba(230,150,140,.7);color:#fff;font:bold 11px/13px sans-serif;text-align:center;text-shadow:0 0 2px #000">+</span>H⁺ — ион водорода</div>
+  <div class="m"><span class="dot" style="background:#3d8bff;color:#fff;font:bold 11px/13px sans-serif;text-align:center">−</span>e⁻ — электрон</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.8) 0 12%,rgba(143,152,159,.55) 38%);border:1px solid rgba(190,198,205,.6)"></span>H₂ — водород (мешающий газ)</div>
+  <div class="m"><span class="dot" style="background:radial-gradient(circle at 50% 50%,rgba(245,210,30,.7) 0 52%,rgba(160,168,176,.55) 54%)"></span>H₂S — сероводород (мешающий)</div>
+  <div class="m"><span class="dot" style="background:rgba(207,216,230,.08);border:1px solid rgba(207,216,230,.18);box-shadow:none"></span>прочие молекулы воздуха</div>
+</div>
+
+<div id="info" class="panel">
+  <h3>Принцип работы</h3>
+  <p>Сенсор — маленький <b>топливный элемент</b>. Газ окисляется на катализаторе, и ячейка сама вырабатывает ток, пропорциональный концентрации. Внешний источник питания расходуется только на поддержание потенциала электрода и на усилитель.</p>
+  <ol>
+    <li>Газ входит через <b>капилляр</b>. Это диффузионный барьер: он ограничивает поток газа, и поток определяет чувствительность сенсора.</li>
+    <li>Электроды — плоские слои, сложенные пакетом: измерительный, опорный и контр-электрод разделены сепараторами, пропитанными электролитом.<br><b>Измерительный (рабочий) электрод</b> газодиффузионный: слой платинового катализатора нанесён на пористую гидрофобную <b>PTFE-мембрану</b>. Газ проходит через поры, а электролит наружу не протекает. Реакция идёт на «границе трёх фаз», где сходятся газ, катализатор и электролит:<div class="reaction">CO + H₂O → CO₂ + 2H⁺ + 2e⁻</div></li>
+    <li>Катализатор окисляет CO быстрее, чем капилляр его подводит. CO не растворяется в объёме электролита и не плывёт к электродам: он реагирует сразу за мембраной. Каждая дошедшая молекула реагирует, и ток задаётся <b>потоком через капилляр</b>, то есть концентрацией CO снаружи. Поэтому сигнал линеен и мало зависит от старения катализатора.</li>
+    <li><b>Электроны</b> уходят во внешнюю цепь. <b>Ионы H⁺</b> идут через электролит (водный раствор серной кислоты) к <b>контр-электроду</b>. Там они реагируют с кислородом воздуха, который поступает через тыльное отверстие:<div class="reaction">½O₂ + 2H⁺ + 2e⁻ → H₂O</div></li>
+    <li>Суммарно идёт реакция <b>CO + ½O₂ → CO₂</b>. Электролит и электроды не расходуются, этим сенсор отличается от гальванического сенсора O₂ со свинцовым анодом.</li>
+    <li><b>Опорный электрод</b> и <b>потенциостат</b>. Ток реакции поляризует контр-электрод, и его потенциал «плавает». Поэтому потенциал измерительного электрода задают относительно отдельного опорного электрода, через который <b>ток не течёт</b>. Для CO смещение равно 0 мВ. Потенциостат подаёт на контр-электрод такое напряжение, чтобы это смещение не менялось. Ток измерительного электрода преобразует в напряжение трансимпедансный усилитель (ТИУ).<br>В <b>двухэлектродной</b> схеме контр-электрод служит одновременно опорным. Ток его поляризует, потенциал измерительного электрода смещается, поэтому сужается линейный диапазон и растёт влияние мешающих газов. Это можно увидеть, выключив кнопку «Опорный электрод».</li>
+    <li>Чувствительность составляет десятки нА на 1 ppm. Например, у Alphasense CO-AF это 55–100 нА/ppm, в модели взято 70 нА/ppm.</li>
+  </ol>
+  <p><b>Ограничения</b></p>
+  <ul style="padding-left:18px;margin:4px 0 8px">
+    <li><b>Перекрёстная чувствительность к H₂</b>: водород тоже окисляется на платине (H₂ → 2H⁺ + 2e⁻). У CO-AF отклик на 400 ppm H₂ составляет до 60 % от отклика на CO, у CiTiceL 4CF+ 200 ppm H₂ дают около 25 ppm по CO. Фильтр против H₂ не помогает. Где это важно, применяют сенсоры с компенсацией по H₂ (четвёртый электрод).</li>
+    <li><b>Селективный фильтр</b> (химический или из активированного угля) задерживает H₂S, SO₂, NO, NO₂. Его ёмкость конечна, при насыщении мешающий газ проходит к электроду.</li>
+    <li><b>Кислород</b> нужен контр-электроду. Без него реакция там переходит в выделение водорода, и работа сенсора нарушается.</li>
+    <li><b>Температура и влажность</b>. Чувствительность растёт с температурой (у CO-AF при 50 °C она составляет 104–112 % от значения при 20 °C), растёт и фоновый ток. Кислотный электролит гигроскопичен и обменивается водой с воздухом: долго в сухом воздухе он высыхает, во влажном набухает. Срок службы обычно 2–3 года и больше.</li>
+  </ul>
+  <p class="note">Условности анимации. Слои ячейки и капилляр сильно увеличены, доли газов и скорости изменены для наглядности. В кислом электролите ионов H⁺ очень много, показаны только те, что образовались в реакции. Ток через ячейку переносит весь объём электролита, а не отдельные «путешествующие» ионы. Искажение показаний в двухэлектродной схеме — качественная модель.</p>
+  <p style="margin-bottom:2px"><b>Источники</b></p>
+  <ul class="src">
+    <li>Alphasense, CO-AF Carbon Monoxide Sensor</li>
+    <li>Alphasense AAN 105-03, Designing a Potentiostatic Circuit</li>
+    <li>City Technology (Honeywell), CiTiceL 4CF+</li>
+    <li>SGX Sensortech, введение в электрохимические сенсоры</li>
+    <li>Analog Devices CN0396, потенциостат для ЭХ-сенсора</li>
+  </ul>
+</div>
+
+<div id="controls" class="panel">
+  <h3>Управление</h3>
+  <div class="row"><label for="co">CO в воздухе</label><output for="co"></output></div>
+  <input type="range" id="co" min="0" max="100" step="1" value="45">
+  <div class="row"><label for="h2">H₂ (мешающий газ)</label><output for="h2"></output></div>
+  <input type="range" id="h2" min="0" max="1000" step="10" value="0">
+  <div class="row"><label for="h2s">H₂S (мешающий газ)</label><output for="h2s"></output></div>
+  <input type="range" id="h2s" min="0" max="50" step="1" value="0">
+  <div class="row"><label for="speed">Скорость анимации</label><output for="speed"></output></div>
+  <input type="range" id="speed" min="0.1" max="1.5" step="0.05" value="0.8">
+  <div class="btns sys">
+    <button id="bPause">⏸ Пауза</button>
+    <button class="toggle" id="tLabels">Подписи</button>
+    <button class="toggle" id="tAir">Молекулы воздуха</button>
+  </div>
+  <div class="btns">
+    <button class="toggle" id="tFilter">Фильтр</button>
+    <button class="toggle" id="tPot">Опорный электрод</button>
+  </div>
+  <div class="btns">
+    <button data-view="0">Общий вид</button>
+    <button data-view="1">Сбоку</button>
+    <button data-view="2">Электроды</button>
+  </div>
+</div>
+
+<div id="readout" class="panel">
+  <h3>Показание газоанализатора</h3>
+  <div class="top">
+    <div class="vals">
+      <div class="big"><span id="rd">0</span> <small>ppm CO</small></div>
+      <div class="small"><b id="mg">0</b> мг/м³ (ПДК р.з. — 20 мг/м³)</div>
+      <div class="warn" id="warn"></div>
+      <div class="small">Ток: <b id="cur">0</b> · ТИУ 10 кОм: <b id="uout">0</b> мВ<br>
+        ИЭ отн. опорного: <b id="dE">0</b><br>
+        Фактически CO у сенсора: <b id="act">0</b> ppm</div>
+    </div>
+    <svg id="pstat" viewBox="0 -8 210 130">
+      <rect x="4" y="14" width="34" height="92" rx="4" fill="#1a2433" stroke="#6f7f95"/>
+      <line x1="12" y1="30" x2="38" y2="30" stroke="#2e3238" stroke-width="4"/>
+      <line id="sRE" x1="12" y1="60" x2="38" y2="60" stroke="#a7b0bb" stroke-width="3"/>
+      <line x1="12" y1="90" x2="38" y2="90" stroke="#2e3238" stroke-width="4"/>
+      <text x="13" y="25">ИЭ</text><text id="tRE" x="13" y="55">ОЭ</text><text x="13" y="85">КЭ</text>
+      <!-- ТИУ -->
+      <path class="w" d="M38 30 H100 V22 H120"/>
+      <path class="flow" id="fWE" d="M38 30 H100 V22 H120"/>
+      <path class="w" d="M120 38 H110 V50 M104 50 H116 M106 53 H114 M108 56 H112"/>
+      <path class="w" d="M104 22 V4 H118 M140 4 H160 V30"/>
+      <rect x="118" y="1" width="22" height="6" fill="#141b26" stroke="#9fb0c6" stroke-width="1.2"/>
+      <text x="123" y="-1">R</text>
+      <polygon class="amp" points="120,14 120,46 150,30"/>
+      <text x="122" y="25">−</text><text x="122" y="41">+</text><text x="126" y="33">ТИУ</text>
+      <path class="w" d="M150 30 H176"/><text x="178" y="33">U</text>
+      <!-- потенциостат -->
+      <g id="gA1">
+        <path class="w" d="M38 60 H90 V74 H110"/>
+        <path class="w" d="M110 90 H98 V100 M92 100 H104 M94 103 H102"/>
+        <text x="80" y="112">0 мВ</text>
+        <polygon class="amp" points="110,66 110,98 140,82"/>
+        <text x="112" y="77">−</text><text x="112" y="93">+</text><text x="118" y="85">П</text>
+        <path class="w" d="M140 82 H156 V114 H60 V90 H38"/>
+        <path class="flow" id="fCE" d="M140 82 H156 V114 H60 V90 H38"/>
+      </g>
+      <g id="g2el" style="display:none">
+        <path class="w" d="M38 90 H66 V50 H110"/>
+        <path class="flow" id="fCE2" d="M110 50 H66 V90 H38"/>
+      </g>
+    </svg>
+  </div>
+  <div class="charts">
+    <div class="chb">
+      <div class="chart-t">Ток сенсора, мкА</div>
+      <canvas class="ch" id="chartS"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#5aa8ff"></i>ток ИЭ</span></span></div>
+    </div>
+    <div class="chb">
+      <div class="chart-t">Концентрация CO, ppm</div>
+      <canvas class="ch" id="chartC"></canvas>
+      <div class="lgl"><span class="lg"><span><i style="background:#8a96a8"></i>фактически</span><span><i style="background:#4fd18b"></i>показание</span></span></div>
+    </div>
+  </div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/OrbitControls.js"></script>
+<script src="assets/logo.js"></script>
+<script src="common/core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const V3 = THREE.Vector3;
+  const lerp = THREE.MathUtils.lerp;
+
+  /* ===================== Сцена ===================== */
+  const stage = GA.createStage({ cameraPos: new V3(-5.0, 2.4, 6.6), target: new V3(-0.3, -0.45, 0), floorY: -3.0 });
+  const scene = stage.scene;
+  GA.labels = new GA.Labels();
+  GA.addLogo(stage, { maxPx: 760, top: 14, depth: 0.02, layers: 48, spinEvery: 20, spinTime: 2.5 });
+
+  // Ячейка — цилиндр вдоль X. Слои слева направо:
+  // капилляр в крышке → газовая полость (фильтр) → PTFE-мембрана с измерительным электродом →
+  // электролит с опорным электродом → контр-электрод → воздушная полость с отверстием для O2
+  const R = 1.2, RIN = R - 0.15;
+  const X0 = -1.6, CAPL = 0.16, XCAP0 = X0 - CAPL, RCAP = 0.34;   // крышка и капилляр (сильно увеличен)
+  const XFIL = -1.3;                                             // селективный фильтр
+  const XW = -0.85;                                              // плоскость катализатора измерительного электрода
+  const XR = 0.0;                                                // опорный электрод
+  const XC = 0.85;                                               // контр-электрод
+  const X1 = 1.45, RVENT = 0.13;                                 // тыльная крышка с отверстием
+  const BOX = new V3(0.0, -2.35, 0);                             // потенциостат
+
+  /* ---------- Корпус: ближняя половина прозрачна, дальняя — металл ---------- */
+  const innerMetal = new THREE.MeshStandardMaterial({ color: 0x4f5864, metalness: 0.7, roughness: 0.45 });
+  const shellGeo = new THREE.CylinderGeometry(R, R, X1 - XCAP0, 72, 1, true);
+  const shellInner = new THREE.Mesh(shellGeo, Object.assign(innerMetal.clone(), { side: THREE.BackSide }));
+  shellInner.rotation.z = Math.PI / 2; shellInner.position.x = (X1 + XCAP0) / 2;
+  scene.add(shellInner);
+  const glass = GA.mat.glassShell(); glass.side = THREE.FrontSide;
+  const shell = new THREE.Mesh(shellGeo, glass);
+  shell.rotation.z = Math.PI / 2; shell.position.x = (X1 + XCAP0) / 2; shell.renderOrder = 10;
+  scene.add(shell);
+  const metal = GA.mat.metal();
+  for (const x of [XCAP0, X1]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.05, 12, 96), metal);
+    ring.rotation.y = Math.PI / 2; ring.position.x = x;
+    scene.add(ring);
+  }
+  {
+    const pts = [];
+    for (let k = 0; k < 12; k++) {
+      const a = k / 12 * Math.PI * 2;
+      pts.push(XCAP0, Math.cos(a) * R, Math.sin(a) * R, X1, Math.cos(a) * R, Math.sin(a) * R);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x9fb4cc, transparent: true, opacity: 0.18 })));
+  }
+  // передняя крышка с капилляром
+  const capMat = new THREE.MeshStandardMaterial({ color: 0x9aa6b4, metalness: 0.6, roughness: 0.4, transparent: true, opacity: 0.32, side: THREE.DoubleSide, depthWrite: false });
+  for (const x of [XCAP0, X0]) {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(RCAP, R, 72), capMat);
+    ring.position.x = x; ring.rotation.y = Math.PI / 2; ring.renderOrder = 11;
+    scene.add(ring);
+  }
+  const capTube = new THREE.Mesh(new THREE.CylinderGeometry(RCAP, RCAP, CAPL, 40, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0xc9d1db, metalness: 0.85, roughness: 0.3, side: THREE.DoubleSide }));
+  capTube.rotation.z = Math.PI / 2; capTube.position.x = X0 - CAPL / 2;
+  scene.add(capTube);
+  // тыльная крышка с отверстием для воздуха
+  {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(RVENT, R, 72), capMat);
+    ring.position.x = X1; ring.rotation.y = Math.PI / 2; ring.renderOrder = 11;
+    scene.add(ring);
+    const vent = new THREE.Mesh(new THREE.TorusGeometry(RVENT, 0.025, 8, 40), metal);
+    vent.position.x = X1; vent.rotation.y = Math.PI / 2;
+    scene.add(vent);
+  }
+
+  /* ---------- Слои ячейки ---------- */
+  function grainTexture(base, dark, n, alpha) {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d');
+    g.fillStyle = base; g.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < n; i++) {
+      g.fillStyle = dark;
+      g.globalAlpha = 0.25 + Math.random() * 0.6;
+      g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 0.6 + Math.random() * 2.2, 0, 7); g.fill();
+    }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
+  function slab(x0, x1, r, mat, order) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, x1 - x0, 72), mat);
+    m.rotation.z = Math.PI / 2; m.position.x = (x0 + x1) / 2; m.renderOrder = order || 4;
+    scene.add(m);
+    return m;
+  }
+  const ptfeMat = () => new THREE.MeshStandardMaterial({ color: 0xf3f5f7, roughness: 0.9, transparent: true, opacity: 0.45, depthWrite: false });
+  const catMat = () => new THREE.MeshStandardMaterial({ map: grainTexture('#2e3034', '#08090a', 2600), color: 0x8a8d92, roughness: 0.95, metalness: 0, envMapIntensity: 0.25, transparent: true, opacity: 0.92, depthWrite: false });
+  // измерительный электрод: мембрана (к газу) + катализатор (к электролиту)
+  const weMem = slab(XW - 0.07, XW - 0.015, RIN, ptfeMat(), 6);
+  const weCat = slab(XW - 0.015, XW + 0.015, RIN, catMat(), 6);
+  // контр-электрод: катализатор (к электролиту) + мембрана (к воздуху)
+  const ceCat = slab(XC - 0.015, XC + 0.015, RIN, catMat(), 6);
+  slab(XC + 0.015, XC + 0.07, RIN, ptfeMat(), 6);
+  // опорный электрод — тонкий пористый слой
+  const reMat = new THREE.MeshStandardMaterial({ color: 0x8e979f, metalness: 0.6, roughness: 0.5, alphaMap: GA.meshTexture(30), transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false });
+  const reDisc = slab(XR - 0.012, XR + 0.012, RIN - 0.05, reMat, 7);
+  // электролит
+  const elec = slab(XW + 0.016, XC - 0.016, RIN - 0.005, new THREE.MeshStandardMaterial({
+    color: 0x7fb6ff, roughness: 0.1, metalness: 0, transparent: true, opacity: 0.12, depthWrite: false
+  }), 3);
+  // селективный фильтр (уголь)
+  const filter = slab(XFIL - 0.06, XFIL + 0.06, RIN, new THREE.MeshStandardMaterial({
+    map: grainTexture('#f6f6f2', '#c9cbc6', 2200), roughness: 0.95, transparent: true, opacity: 0.86, depthWrite: false
+  }), 5);
+
+  /* ---------- Выводы электродов и потенциостат ---------- */
+  const tabMat = GA.mat.metal(0xd8dde3);
+  const wireMat = GA.mat.gold();
+  const YT = -1.55, YB = BOX.y + 0.3;
+  function lead(x) {
+    const g = new THREE.Group();
+    const tab = new THREE.Mesh(new THREE.BoxGeometry(0.03, -YT - RIN + 0.02, 0.14), tabMat);
+    tab.position.set(x, (-RIN + YT) / 2, 0);
+    g.add(tab);
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, YT - YB, 12), wireMat);
+    w.position.set(x, (YT + YB) / 2, 0);
+    g.add(w);
+    scene.add(g);
+    return g;
+  }
+  lead(XW); const reLead = lead(XR); lead(XC);
+  const box = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.6, 0.8), new THREE.MeshStandardMaterial({
+    color: 0x26303d, metalness: 0.3, roughness: 0.5, transparent: true, opacity: 0.88
+  }));
+  box.position.copy(BOX);
+  scene.add(box);
+  const boxLed = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({ color: 0x0f3a24 }));
+  boxLed.position.set(BOX.x, BOX.y, 0.401);
+  scene.add(boxLed);
+
+  /* ---------- Подписи ---------- */
+  GA.labels.setAvoid(new THREE.Box3(new V3(XCAP0 - 0.1, BOX.y - 0.35, -R - 0.1), new V3(X1 + 0.1, R + 0.1, R + 0.1)));
+  GA.labels.add('Капилляр — диффузионный барьер', new V3(X0 - CAPL / 2, RCAP, 0), { side: 'top' });
+  const fl = new THREE.Object3D(); fl.position.set(XFIL, RIN, 0); scene.add(fl);
+  GA.labels.add('Селективный фильтр', fl, { side: 'top' });
+  GA.labels.add('PTFE-мембрана', new V3(XW - 0.045, RIN, 0), { side: 'top' });
+  GA.labels.add('Электролит (H₂SO₄ + H₂O)', new V3((XW + XC) / 2 - 0.25, RIN - 0.1, 0.3), { side: 'top' });
+  const rl = new THREE.Object3D(); rl.position.set(XR, RIN - 0.05, 0); scene.add(rl);
+  GA.labels.add('Опорный электрод', rl, { side: 'top' });
+  GA.labels.add('Отверстие для доступа O₂', new V3(X1, RVENT, 0), { side: 'top' });
+  GA.labels.add('Измерительный электрод (Pt)', new V3(XW, -RIN + 0.1, 0.4), { side: 'bottom' });
+  GA.labels.add('Контр-электрод', new V3(XC, -RIN + 0.1, 0.4), { side: 'bottom' });
+  GA.labels.add('Потенциостат и ТИУ', new V3(BOX.x + 0.9, BOX.y - 0.3, 0.4), { side: 'bottom' });
+
+  /* ===================== Газ снаружи и в газовой полости ===================== */
+  let coV = 45, h2Set = 0, h2sSet = 0, filterOn = true, potOn = true, showAir = true;
+  const ppmFromSlider = v => Math.round(1000 * Math.pow(v / 100, 2));
+  const frac = (c, cmax, fmax) => c <= 0 ? 0 : fmax * Math.pow(c / cmax, 0.5);
+  function pickType() {
+    const r = Math.random();
+    const fCO = frac(ppmFromSlider(coV), 1000, 0.5), fH2 = frac(h2Set, 1000, 0.3), fS = frac(h2sSet, 50, 0.25);
+    if (r < fCO) return 'CO';
+    if (r < fCO + fH2) return 'H2';
+    if (r < fCO + fH2 + fS) return 'H2S';
+    return 'AIR';
+  }
+  const REACTIVE = { CO: 1, H2: 1, H2S: 1 };
+
+  // зоны: out — снаружи, cap — в капилляре, head — газовая полость перед мембраной
+  function confine(p, v, m) {
+    const r2 = p.y * p.y + p.z * p.z;
+    const z = m.zone || 'out';
+    if (z === 'out') {
+      if (p.x > XCAP0) {
+        if (r2 < RCAP * RCAP) { m.zone = 'cap'; m.inside = true; }
+        else { p.x = XCAP0 - 0.001; v.x = -Math.abs(v.x); }
+      }
+      return true;
+    }
+    if (z === 'cap') {
+      if (p.x < XCAP0) { m.zone = 'out'; m.inside = false; return true; }
+      if (p.x > X0) { m.zone = 'head'; return true; }
+      if (r2 > RCAP * RCAP) {
+        const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+        if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+        p.y = ny * RCAP * 0.999; p.z = nz * RCAP * 0.999;
+      }
+      return true;
+    }
+    // head
+    if (p.x < X0) {
+      if (r2 < RCAP * RCAP) m.zone = 'cap';
+      else { p.x = X0 + 0.001; v.x = Math.abs(v.x); }
+      return true;
+    }
+    // фильтр: задерживает H2S
+    if (filterOn && m.type === 'H2S' && Math.abs(p.x - XFIL) < 0.06) { trapH2S(m); return true; }
+    const XM = XW - 0.1;
+    if (p.x > XM) {
+      if (REACTIVE[m.type] && !m.state.product) { enterElectrode(m); return true; }
+      p.x = XM; v.x = -Math.abs(v.x);
+    }
+    if (r2 > RIN * RIN) {
+      const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+      if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+      p.y = ny * RIN; p.z = nz * RIN;
+    }
+    return true;
+  }
+
+  const gas = new GA.GasField({
+    scene, count: 300, speed: 2.6, collide: 0.7,
+    box: { xMin: -5.2, xMax: XCAP0, yMin: -1.5, yMax: 1.5, zMin: -1.5, zMax: 1.5 },
+    pickType, confine
+  });
+  for (let i = 0; i < 10; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (RIN - 0.05);
+    const m = gas.spawn('AIR', true, new V3(lerp(X0 + 0.05, XW - 0.15, Math.random()), Math.cos(a) * r, Math.sin(a) * r));
+    m.inside = true; m.zone = 'head';
+  }
+  function refreshAmbient(dt) {
+    for (const m of gas.list) {
+      if (m.dead || m.inside || m.state.product || m.frozen) continue;
+      const w = THREE.MathUtils.clamp((XCAP0 - 0.4 - m.obj.position.x) / 2.5, 0, 1);
+      if (Math.random() < dt * 1.2 * w) {
+        const t = pickType();
+        if (t !== m.type) { const nm = gas.spawn(t, true, m.obj.position); nm.vel.copy(m.vel); gas.remove(m); }
+      }
+    }
+  }
+
+  /* ===================== Электролит: вода ===================== */
+  const EX0 = XW + 0.06, EX1 = XC - 0.06, ER = RIN - 0.1;
+  function confineElec(p, v) {
+    if (p.x < EX0) { p.x = EX0; v.x = Math.abs(v.x); }
+    if (p.x > EX1) { p.x = EX1; v.x = -Math.abs(v.x); }
+    const r2 = p.y * p.y + p.z * p.z;
+    if (r2 > ER * ER) {
+      const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+      if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+      p.y = ny * ER; p.z = nz * ER;
+    }
+    return true;
+  }
+  const water = new GA.GasField({ scene, count: 0, speed: 0.35, collide: 3, box: { xMin: -99, xMax: 99, yMin: -99, yMax: 99, zMin: -99, zMax: 99 }, pickType: () => 'H2O', confine: confineElec });
+  function randInElec(x0 = EX0, x1 = EX1) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * ER;
+    return new V3(lerp(x0, x1, Math.random()), Math.cos(a) * r, Math.sin(a) * r);
+  }
+  function addWater(pos) { const m = water.spawn('H2O', true, pos); m.inside = true; return m; }
+  for (let i = 0; i < 26; i++) addWater(randInElec());
+
+  /* ===================== Воздушная полость за контр-электродом ===================== */
+  const BX0 = XC + 0.12, BX1 = X1 - 0.03;
+  function confineBack(p, v, m) {
+    if (p.x < BX0) { p.x = BX0; v.x = Math.abs(v.x); }
+    if (p.x > BX1) { p.x = BX1; v.x = -Math.abs(v.x); }
+    const r2 = p.y * p.y + p.z * p.z;
+    if (r2 > RIN * RIN) {
+      const r = Math.sqrt(r2), ny = p.y / r, nz = p.z / r, vn = v.y * ny + v.z * nz;
+      if (vn > 0) { v.y -= 2 * vn * ny; v.z -= 2 * vn * nz; }
+      p.y = ny * RIN; p.z = nz * RIN;
+    }
+    return true;
+  }
+  const back = new GA.GasField({ scene, count: 0, speed: 0.9, collide: 1.5, box: { xMin: -99, xMax: 99, yMin: -99, yMax: 99, zMin: -99, zMax: 99 }, pickType: () => 'AIR', confine: confineBack });
+  function randInBack() {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (RIN - 0.05);
+    return new V3(lerp(BX0, BX1, Math.random()), Math.cos(a) * r, Math.sin(a) * r);
+  }
+  for (let i = 0; i < 9; i++) back.spawn('O2', true, randInBack()).inside = true;
+  for (let i = 0; i < 7; i++) back.spawn('AIR', true, randInBack()).inside = true;
+  let o2Pending = 0;           // молекулы O2, которые войдут через отверстие взамен израсходованных
+  let o2Timer = 0;
+
+  /* ===================== Вспышки, ионы, электроны ===================== */
+  const flashes = [];
+  for (let i = 0; i < 50; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GA.glowTexture(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    s.visible = false; s.renderOrder = 21;
+    scene.add(s);
+    flashes.push({ s, life: 0, max: 1, size: 0.5 });
+  }
+  function flash(pos, color, size = 0.5, life = 0.5) {
+    const f = flashes.find(f => f.life <= 0) || flashes[0];
+    f.s.position.copy(pos); f.s.material.color.setHex(color);
+    f.life = f.max = life; f.size = size; f.s.visible = true;
+  }
+  function stepFlashes(dt) {
+    for (const f of flashes) {
+      if (f.life <= 0) continue;
+      f.life -= dt;
+      const k = Math.max(0, f.life / f.max);
+      f.s.material.opacity = k;
+      f.s.scale.setScalar(f.size * (1.5 - 0.7 * k));
+      if (f.life <= 0) f.s.visible = false;
+    }
+  }
+  function chargeTex(bg, fg, sign) {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const gr = g.createRadialGradient(26, 24, 4, 32, 32, 30);
+    gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.25, bg); gr.addColorStop(1, bg);
+    g.fillStyle = gr; g.beginPath(); g.arc(32, 32, 29, 0, 7); g.fill();
+    g.strokeStyle = fg; g.lineWidth = 7; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(18, 32); g.lineTo(46, 32);
+    if (sign > 0) { g.moveTo(32, 18); g.lineTo(32, 46); }
+    g.stroke();
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
+  // знак «+» поверх стеклянной сферы иона H+ (цвет иона — как у атома H)
+  function plusTex() {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d');
+    g.lineCap = 'round';
+    for (const [w, col] of [[13, 'rgba(0,0,0,.55)'], [7, '#ffffff']]) {
+      g.strokeStyle = col; g.lineWidth = w;
+      g.beginPath(); g.moveTo(16, 32); g.lineTo(48, 32); g.moveTo(32, 16); g.lineTo(32, 48); g.stroke();
+    }
+    return new THREE.CanvasTexture(c);
+  }
+  const plusMat = new THREE.SpriteMaterial({ map: plusTex(), transparent: true, depthWrite: false });
+  const ionGeo = new THREE.SphereGeometry(1, 20, 14);
+  const eMat = new THREE.SpriteMaterial({ map: chargeTex('#3d8bff', '#ffffff', -1), depthWrite: false });
+
+  const ions = [];      // H+
+  function spawnH(pos) {
+    const s = new THREE.Group();
+    const ball = new THREE.Mesh(ionGeo, GA.atomMat('H', 'cation'));
+    ball.scale.setScalar(0.08 * GA.molK); ball.renderOrder = 14;
+    const plus = new THREE.Sprite(plusMat); plus.scale.setScalar(0.1 * GA.molK); plus.renderOrder = 15;
+    s.add(ball, plus);
+    s.position.copy(pos); scene.add(s);
+    ions.push({ s, v: new V3(0.55, 0, 0) });
+  }
+  const elecs = [];     // e−: путь по электроду → выводу → потенциостату → контр-электроду
+  function spawnE(site, delay) {
+    const s = new THREE.Sprite(eMat); s.scale.setScalar(0.12 * GA.molK); s.renderOrder = 16;
+    s.position.copy(site); s.visible = false; scene.add(s);
+    const ceEnd = new V3(XC, lerp(-0.6, 0.6, Math.random()), lerp(-0.6, 0.6, Math.random()));
+    const pts = [site.clone(), new V3(XW, -RIN + 0.02, 0), new V3(XW, YB, 0), new V3(XW, BOX.y, 0),
+      new V3(XC, BOX.y, 0), new V3(XC, YB, 0), new V3(XC, -RIN + 0.02, 0), ceEnd];
+    let len = 0; const segs = [];
+    for (let i = 1; i < pts.length; i++) { const l = pts[i].distanceTo(pts[i - 1]); segs.push(l); len += l; }
+    elecs.push({ s, pts, segs, len, d: 0, delay });
+  }
+  const _t = new V3();
+  function stepCharges(dt) {
+    let nH = 0;
+    for (let i = ions.length - 1; i >= 0; i--) {
+      const ion = ions[i], p = ion.s.position;
+      ion.v.x = GA.approach(ion.v.x, 0.55, 2, dt);
+      ion.v.y += (Math.random() - 0.5) * dt * 6; ion.v.z += (Math.random() - 0.5) * dt * 6;
+      ion.v.y *= Math.exp(-2 * dt); ion.v.z *= Math.exp(-2 * dt);
+      p.addScaledVector(ion.v, dt);
+      const r = Math.hypot(p.y, p.z);
+      if (r > ER) { p.y *= ER / r; p.z *= ER / r; }
+      if (p.x >= XC - 0.03) {
+        scene.remove(ion.s); ions.splice(i, 1);
+        hArrived(p);
+        continue;
+      }
+      nH++;
+    }
+    for (let i = elecs.length - 1; i >= 0; i--) {
+      const e = elecs[i];
+      if (e.delay > 0) { e.delay -= dt; continue; }
+      e.s.visible = true;
+      e.d += dt * 1.6;
+      if (e.d >= e.len) {
+        flash(e.pts[e.pts.length - 1], 0x5aa8ff, 0.18, 0.25);
+        scene.remove(e.s); elecs.splice(i, 1); continue;
+      }
+      let d = e.d, k = 0;
+      while (d > e.segs[k]) { d -= e.segs[k]; k++; }
+      e.s.position.lerpVectors(e.pts[k], e.pts[k + 1], d / e.segs[k]);
+      // внутри корпуса потенциостата электрон не виден
+      e.s.visible = !(k === 3);
+    }
+  }
+
+  /* ===================== Реакции ===================== */
+  const pops = {};
+  function popOnce(key, every, text, anchor, ttl = 2.2) {
+    if (stage.time - (pops[key] || -99) < every) return;
+    pops[key] = stage.time;
+    GA.labels.pop(text, anchor, ttl);
+  }
+  const tweens = [];
+  function tween(obj, to, dur, done) { tweens.push({ obj, from: obj.position.clone(), to: to.clone(), t: 0, dur, done }); }
+  function stepTweens(dt) {
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      const tw = tweens[i];
+      tw.t += dt;
+      const k = Math.min(1, tw.t / tw.dur), e = k * k * (3 - 2 * k);
+      tw.obj.position.lerpVectors(tw.from, tw.to, e);
+      if (k >= 1) { tweens.splice(i, 1); tw.done && tw.done(); }
+    }
+  }
+  const stats = { CO: 0, H2: 0, H2S: 0, trapped: 0, o2: 0 };
+
+  // Молекула проходит поры мембраны к катализатору
+  function enterElectrode(m) {
+    m.frozen = true;
+    const p = m.obj.position;
+    const site = new V3(XW, p.y, p.z);
+    const r = Math.hypot(site.y, site.z);
+    if (r > RIN - 0.12) { site.y *= (RIN - 0.12) / r; site.z *= (RIN - 0.12) / r; }
+    // вода электролита участвует в окислении CO и H2S
+    const needW = m.type === 'H2' ? 0 : 1;
+    if (needW) {
+      let best = null, bd = 1e9;
+      for (const w of water.list) {
+        if (w.dead || w.frozen) continue;
+        const d = w.obj.position.distanceToSquared(site);
+        if (d < bd) { bd = d; best = w; }
+      }
+      if (best) {
+        best.frozen = true;
+        tween(best.obj, site.clone().add(new V3(0.07, 0.04, 0)), 0.45, () => water.remove(best));
+      }
+    }
+    tween(m.obj, site.clone().add(new V3(-0.03, 0, 0)), 0.45, () => react(m, site));
+  }
+
+  function react(m, site) {
+    const t = m.type;
+    gas.remove(m);
+    stats[t]++;
+    flash(site, 0xfff0a0, 0.55, 0.45);
+    let nE = 2;
+    if (t === 'CO') {
+      popOnce('co', 5, 'CO + H₂O → CO₂ + 2H⁺ + 2e⁻', site.clone());
+      const pm = gas.spawn('CO2', true, site.clone().add(new V3(-0.16, 0, 0)));
+      pm.inside = true; pm.zone = 'head'; pm.state.product = true;
+      pm.vel.set(-1.5, (Math.random() - 0.5), (Math.random() - 0.5));
+    } else if (t === 'H2') {
+      popOnce('h2', 5, 'H₂ → 2H⁺ + 2e⁻ — ложный сигнал «CO»', site.clone());
+    } else {
+      nE = 8;
+      popOnce('h2s', 5, 'H₂S + 4H₂O → H₂SO₄ + 8H⁺ + 8e⁻', site.clone());
+    }
+    for (let i = 0; i < nE; i++) {
+      spawnH(site.clone().add(new V3(0.06 + Math.random() * 0.06, (Math.random() - 0.5) * 0.16, (Math.random() - 0.5) * 0.16)));
+      spawnE(site.clone(), i * 0.12);
+    }
+    gas.spawn(null, false);    // взамен — из окружающей среды
+  }
+
+  function trapH2S(m) {
+    m.frozen = true; m.state.trapped = true;
+    m.obj.position.x = XFIL - 0.1 - Math.random() * 0.02;
+    m.obj.scale.setScalar(GA.molScale * 0.8);
+    stats.trapped++;
+    flash(m.obj.position, 0xe3c02a, 0.3, 0.4);
+    popOnce('trap', 6, 'H₂S задержан фильтром', m.obj);
+    gas.spawn(null, false);
+    const trapped = gas.list.filter(q => !q.dead && q.state.trapped);
+    if (trapped.length > 30) gas.remove(trapped[0]);
+  }
+
+  // H+ дошёл до контр-электрода. На каждые 4 H+ расходуется одна молекула O2: O2 + 4H+ + 4e− → 2H2O
+  let hCount = 0;
+  function hArrived(p) {
+    hCount++;
+    if (hCount < 4) return;
+    let best = null, bd = 1e9;
+    for (const q of back.list) {
+      if (q.dead || q.frozen || q.type !== 'O2') continue;
+      const d = q.obj.position.x;
+      if (d < bd) { bd = d; best = q; }
+    }
+    if (!best) return;       // кислород кончился — ждём, пока войдёт через отверстие
+    hCount -= 4;
+    best.frozen = true;
+    const site = new V3(XC + 0.02, THREE.MathUtils.clamp(p.y, -0.7, 0.7), THREE.MathUtils.clamp(p.z, -0.7, 0.7));
+    tween(best.obj, site, 0.5, () => {
+      back.remove(best);
+      stats.o2++;
+      flash(site, 0x80c8ff, 0.5, 0.45);
+      popOnce('ce', 5, '½O₂ + 2H⁺ + 2e⁻ → H₂O', site.clone().add(new V3(-0.1, 0, 0)));
+      for (const dz of [-0.1, 0.1]) {
+        const w = addWater(new V3(EX1 - 0.02, site.y, site.z + dz));
+        w.vel.set(-0.3, 0, 0);
+      }
+      o2Pending++;
+      // вода электролита не копится в анимации бесконечно (на деле объём сохраняется)
+      const ws = water.list.filter(w => !w.dead && !w.frozen);
+      if (ws.length > 34) water.remove(ws[Math.floor(Math.random() * ws.length)]);
+    });
+  }
+  function stepBack(dt) {
+    o2Timer -= dt;
+    if (o2Pending > 0 && o2Timer <= 0) {
+      o2Pending--; o2Timer = 0.6;
+      const m = back.spawn('O2', true, new V3(X1 + 0.15, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1));
+      m.inside = true; m.frozen = true;
+      tween(m.obj, new V3(BX1 - 0.05, 0, 0), 0.5, () => { m.frozen = false; m.vel.set(-0.9, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6); });
+    }
+  }
+
+  function stepProducts() {
+    let n = 0;
+    for (const m of gas.list) {
+      if (m.dead || !m.state.product) continue;
+      n++;
+      if (!m.inside && m.obj.position.x < XCAP0 - 1.2) gas.remove(m);
+    }
+    if (n > 40) { const old = gas.list.find(m => !m.dead && m.state.product); if (old) gas.remove(old); }
+  }
+
+  /* ===================== Модель сигнала ===================== */
+  const S = 70;                 // нА/ppm
+  const K_H2 = 0.4, K_H2S = 2;  // относительная чувствительность (типовая для H2; для H2S без фильтра — условно)
+  const RF = 10e3;              // сопротивление ТИУ, Ом
+  // Двухэлектродная схема: поляризация контр-электрода током смещает потенциал измерительного
+  // (dE = b·ln(1 + I/I0)); при большом смещении окисление CO идёт не полностью.
+  const B = 60, I0 = 4000, E_HALF = 150, E_W = 25;   // мВ, нА, мВ, мВ
+  const effOf = dE => 1 / (1 + Math.exp((dE - E_HALF) / E_W));
+  let effNow = 1, inCO = 0, inH2 = 0, inH2S = 0, reading = 0, current = 0, dEm = 0, filterSat = 0;
+  // самописец 1 — измеряемый ток, 2 — пересчитанная концентрация (ток / S)
+  const chartS = new GA.StripChart(document.getElementById('chartS'), [
+    { color: '#5aa8ff', data: [] }
+  ], { max: 7, len: 260, period: 0.05, gridLines: [{ v: 0 }] });
+  const chartC = new GA.StripChart(document.getElementById('chartC'), [
+    { color: '#8a96a8', data: [] },
+    { color: '#4fd18b', data: [] }
+  ], { max: 100, len: 260, period: 0.05, gridLines: [{ v: 17, t: 'ПДК 17 ppm' }, { v: 0 }] });
+  const el = id => document.getElementById(id);
+  const fmt = (v, d = 1) => v.toFixed(d).replace('.', ',');
+  let uiAcc = 0, chartMax = 100, dash = 0;
+
+  function stepSignal(dt, dtReal) {
+    const co = ppmFromSlider(coV);
+    inCO = GA.approach(inCO, co, 1 / 3, dt);
+    inH2 = GA.approach(inH2, h2Set, 1 / 3, dt);
+    inH2S = GA.approach(inH2S, filterOn ? 0 : h2sSet, 1 / 3, dt);
+    const i0 = S * (inCO + K_H2 * inH2 + K_H2S * inH2S);     // нА при полной эффективности
+    let eff = 1, dE = 0;
+    if (!potOn) {
+      // решаем eff = effOf(B·ln(1 + i0·eff/I0)) делением отрезка
+      let lo = 0, hi = 1;
+      for (let k = 0; k < 30; k++) {
+        const mid = (lo + hi) / 2;
+        const f = effOf(B * Math.log(1 + i0 * mid / I0));
+        if (f > mid) lo = mid; else hi = mid;
+      }
+      eff = (lo + hi) / 2;
+      dE = B * Math.log(1 + i0 * eff / I0);
+    }
+    effNow = eff;
+    current = GA.approach(current, i0 * eff, 2.5, dt);
+    dEm = GA.approach(dEm, dE, 2.5, dt);
+    reading = current / S;
+
+    // яркость катализаторов — от тока
+    // поляризация контр-электрода (двухэлектродная схема) — красноватый оттенок
+    const pol = potOn ? 0 : Math.min(1, dEm / 150);
+    ceCat.material.emissive.setRGB(0.45 * pol, 0.08 * pol, 0.02 * pol);
+    boxLed.material.color.setRGB(0.06, 0.2 + 0.6 * Math.min(1, reading / 200), 0.12);
+
+    // схема: бегущие штрихи — ток
+    dash -= dtReal * (2 + 30 * Math.min(1, current / (S * 300)));
+    for (const id of ['fWE', 'fCE', 'fCE2']) {
+      el(id).style.strokeDashoffset = dash.toFixed(1);
+      el(id).style.opacity = current > S * 0.5 ? 1 : 0.15;
+    }
+
+    if (!stage.paused) {
+      const m = Math.max(inCO, reading);
+      const target = m < 80 ? 100 : m < 400 ? 500 : 1200;
+      if (target !== chartMax) { chartMax = target; chartC.max = target; }
+      // шкала тока соответствует шкале концентрации (I = S·c); запас сверху — под подпись линии
+      const iTop = chartMax * S / 1000;
+      chartS.max = iTop * 1.25;
+      chartS.gridLines = [{ v: iTop, t: fmt(iTop, iTop < 10 ? 1 : 0) + ' мкА' }, { v: 0 }];
+      chartS.push([Math.min(current / 1000, chartS.max)], dtReal);
+      chartC.push([Math.min(inCO, chartMax), Math.min(reading, chartMax)], dtReal);
+    }
+    uiAcc += dtReal;
+    if (uiAcc > 0.15) {
+      uiAcc = 0;
+      el('rd').textContent = reading.toFixed(0);
+      el('mg').textContent = fmt(reading * 1.165, 0);
+      el('cur').textContent = current < 1000 ? current.toFixed(0) + ' нА' : fmt(current / 1000, current < 1e4 ? 2 : 1) + ' мкА';
+      el('uout').textContent = (current * 1e-9 * RF * 1000).toFixed(current < 1e4 ? 1 : 0).replace('.', ',');
+      el('dE').textContent = potOn ? '0 мВ (удерживается)' : '≈ ' + dEm.toFixed(0) + ' мВ (не контролируется)';
+      el('act').textContent = inCO.toFixed(0);
+      let w = '';
+      const falseP = reading - inCO;
+      if (!potOn && effNow < 0.9) w = '⚠ Без опорного электрода: контр-электрод поляризован, показание занижено';
+      else if (falseP > 3 && inH2 > 5 && (filterOn || inH2S < 1)) w = '⚠ Водород даёт ложное показание по CO';
+      else if (falseP > 3 && inH2S > 1) w = '⚠ Без фильтра H₂S даёт ложное показание по CO';
+      else if (reading > 17) w = 'Превышена ПДК CO в воздухе рабочей зоны';
+      el('warn').textContent = w;
+    }
+  }
+
+  /* ===================== Главный цикл ===================== */
+  stage.onFrame((dt, t, dtReal) => {
+    refreshAmbient(dt);
+    gas.step(dt);
+    water.step(dt);
+    back.step(dt);
+    stepBack(dt);
+    stepTweens(dt);
+    stepProducts();
+    if (dt > 0) stepCharges(dt);
+    for (const f of [gas, back]) for (const m of f.list) if (!m.dead) m.obj.visible = showAir || m.type !== 'AIR';
+    stepFlashes(dt);
+    stepSignal(dt, dtReal);
+  });
+  window.__dbg = () => JSON.stringify(Object.assign({ reading: +reading.toFixed(1), current: +current.toFixed(0), water: water.list.length, ions: ions.length, e: elecs.length, o2back: back.list.filter(m => m.type === 'O2').length }, stats));
+
+  /* ===================== Интерфейс ===================== */
+  for (const id of ['co', 'h2', 'h2s', 'speed']) {
+    const mm = new RegExp('[#&]' + id + '=([0-9.]+)').exec(location.hash);
+    if (mm) el(id).value = mm[1];
+  }
+  GA.bindRange('co', v => { const c = ppmFromSlider(v); return c + ' ppm (' + fmt(c * 1.165, 0) + ' мг/м³)'; }, v => { coV = v; });
+  GA.bindRange('h2', v => v.toFixed(0) + ' ppm', v => { h2Set = v; });
+  GA.bindRange('h2s', v => v.toFixed(0) + ' ppm', v => { h2sSet = v; });
+  GA.bindRange('speed', v => '×' + fmt(v, 2), v => { stage.timeScale = v; });
+  GA.bindToggle('tLabels', true, v => GA.labels.setVisible(v));
+  GA.bindToggle('tAir', true, v => { showAir = v; });
+  GA.bindToggle('tFilter', !/[#&]filter=0/.test(location.hash), v => {
+    filterOn = v;
+    if (v) { scene.add(filter); scene.add(fl); } else { scene.remove(filter); scene.remove(fl); }
+    // без фильтра задержанные молекулы освобождаются
+    if (!v) for (const m of gas.list) if (!m.dead && m.state.trapped) { m.state.trapped = false; m.frozen = false; m.obj.scale.setScalar(GA.molScale); }
+  });
+  GA.bindToggle('tPot', !/[#&]pot=0/.test(location.hash), v => {
+    potOn = v;
+    reDisc.visible = v; reLead.visible = v;
+    if (v) scene.add(rl); else scene.remove(rl);
+    el('gA1').style.display = v ? '' : 'none';
+    el('g2el').style.display = v ? 'none' : '';
+    el('sRE').style.display = el('tRE').style.display = v ? '' : 'none';
+    if (!v) ceCat.material.emissive = ceCat.material.emissive || new THREE.Color();
+  });
+  const bPause = el('bPause');
+  bPause.addEventListener('click', () => {
+    stage.paused = !stage.paused;
+    bPause.textContent = stage.paused ? '▶ Продолжить' : '⏸ Пауза';
+  });
+  const VIEWS = [
+    [new V3(-5.0, 2.4, 6.6), new V3(-0.3, -0.45, 0)],
+    [new V3(-0.1, -0.3, 8.2), new V3(-0.1, -0.5, 0)],
+    [new V3(-1.9, 1.1, 4.3), new V3(-0.1, -0.1, 0)]
+  ];
+  const hv = /view=([0-9])/.exec(location.hash);
+  if (hv) { stage.camera.position.copy(VIEWS[+hv[1]][0]); stage.controls.target.copy(VIEWS[+hv[1]][1]); }
+  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+    const v = VIEWS[+b.dataset.view];
+    GA.flyTo(stage, v[0], v[1]);
+  }));
+})();
+</script>
+</body>
+</html>
